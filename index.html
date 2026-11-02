@@ -194,7 +194,7 @@ const orders=[
 ];
 const names=['Nina','Sofia','Theo','Bia','Lili','Davi','Pedro'];
 const faces=['👧🏽','👧🏻','👦🏽','👧🏿','👧🏼','👦🏻','👦🏼'];
-const S={round:0,course:'main',stage:'order',stars:0,placed:[],deck:[],guests:[],palette:[],sound:true,locked:false};
+const S={round:0,course:'main',stage:'order',stars:0,placed:[],deck:[],guests:[],palette:[],sound:true,locked:false,clientStars:0,speechProfiles:[],ratings:[]};
 const dessertTypes=['sorvete','panqueca','frutas'];
 const isDessert=()=>S.course==='dessert';
 const foodIcon=id=>window.FoodArt?window.FoodArt.ingredient(id):ingredients[id][1];
@@ -205,7 +205,56 @@ function order(){return S.deck[S.round][S.course];}
 function dish(){return dishes[order()[0]];}
 function snack(t,warn){const x=$('toast');x.textContent=t;x.className='toast show'+(warn?' warning':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>x.className='toast',2500);}
 function sfx(kind){if(!S.sound)return;try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let melody=kind==='wrong'?[220,185]:kind==='win'?[523,659,784]:[440,587];melody.forEach((v,i)=>{const osc=audio.createOscillator(),gain=audio.createGain(),start=audio.currentTime+i*.09;osc.type='sine';osc.frequency.value=v;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.055,start+.018);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+.18);});}catch(e){}}
-function speak(){try{if(!('speechSynthesis' in window)){snack('Este navegador não tem leitura em voz alta.');return;}speechSynthesis.cancel();let m=new SpeechSynthesisUtterance(order()[2]);m.lang='pt-BR';m.rate=.84;m.pitch=1.12;let voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('pt-br'));if(voice)m.voice=voice;speechSynthesis.speak(m);}catch(e){snack('Não foi possível ouvir o pedido agora.');}}
+const speechSamples=[
+{pitch:1.23,rate:.96,gender:'female'},
+{pitch:.88,rate:.93,gender:'male'},
+{pitch:1.38,rate:1.02,gender:'female'},
+{pitch:1.02,rate:.86,gender:'male'},
+{pitch:1.13,rate:1.05,gender:'female'},
+{pitch:.81,rate:.94,gender:'male'}
+];
+const femaleVoice=/francisca|maria|luciana|helena|raquel|camila|fernanda|feminina|female|mulher|vitoria|vit[oó]ria/i;
+const maleVoice=/antonio|ant[oô]nio|daniel|ricardo|felipe|masculina|male|homem|paulo|marcos/i;
+function voicesForClient(index){
+ const all=window.speechSynthesis?.getVoices()||[];
+ const pt=all.filter(v=>/^pt([-_]|$)/i.test(v.lang));
+ if(!pt.length)return null;
+ const profile=S.speechProfiles[index]||speechSamples[index%speechSamples.length];
+ const filtered=pt.filter(v=>profile.gender==='female'?femaleVoice.test(v.name):maleVoice.test(v.name));
+ const set=filtered.length?filtered:pt;
+ return set[index%set.length];
+}
+function say(text){
+ if(!S.sound)return;
+ if(!('speechSynthesis' in window))return;
+ try{
+   speechSynthesis.cancel();
+   const utterance=new SpeechSynthesisUtterance(text);
+   const profile=S.speechProfiles[S.round]||speechSamples[S.round%speechSamples.length];
+   utterance.lang='pt-BR';
+   utterance.rate=profile.rate;
+   utterance.pitch=profile.pitch;
+   const voice=voicesForClient(S.round);
+   if(voice)utterance.voice=voice;
+   speechSynthesis.speak(utterance);
+ }catch(e){snack('Não foi possível reproduzir a fala neste aparelho.',true);}
+}
+function speak(){say(order()[2]);}
+const reactions={
+  excellent:['Nossa, ficou incrível! Você acertou tudo, adorei!','Perfeito! Esse prato ficou delicioso! Quero voltar amanhã!','Uau! Era exatamente isso que eu queria!'],
+  good:['Muito gostoso! Só mudaria um detalhezinho.','Gostei! Na próxima, tenta seguir o pedido um pouquinho mais.','Que capricho! Só teve uma coisinha diferente.'],
+  okay:['Humm... ficou diferente do meu pedido, mas valeu a tentativa!','Quase lá! Alguns ingredientes não eram os que escolhi.','Foi uma surpresa! Vamos caprichar mais no próximo?'],
+  low:['Acho que houve uma confusão na cozinha. Vamos tentar de novo?','Ops, esse não parece o prato que pedi. Mas você consegue melhorar!','A receita ficou diferente. Que tal conferir a comanda na próxima?']
+};
+function rating(){
+ const wanted=order()[3],correct=S.placed.filter(id=>wanted.includes(id)).length;
+ const wrong=S.placed.length-correct,missing=wanted.length-correct;
+ const score=Math.max(0,Math.round(100*correct/wanted.length-24*wrong));
+ const stars=score>=85?3:score>=60?2:score>=30?1:0;
+ const level=score>=85?'excellent':score>=60?'good':score>=30?'okay':'low';
+ const pool=reactions[level];
+ return {score,stars,correct,wrong,missing,level,response:pool[Math.floor(Math.random()*pool.length)]};
+}
 function show(html){$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').hidden=false;}
 function hide(){$('overlay').hidden=true;$('overlay').innerHTML='';}
 function header(){let idx=['order','prepare','serve'].indexOf(S.stage);if(idx<0)idx=2;$('round').textContent='CLIENTE '+(S.round+1)+' DE 4 • '+(isDessert()?'SOBREMESA':'PRINCIPAL');$('score').textContent=S.stars;$('progressText').textContent=S.stage==='order'?(isDessert()?'🍨 Anote a sobremesa':'📝 Anote o pedido'):S.stage==='prepare'?(isDessert()?'🍓 Prepare a sobremesa':'🍳 Prepare o prato'):'🎉 Prontinho!';$('steps').innerHTML=['Pedido','Preparar','Servir'].map((t,i)=>'<span class="'+(i===idx?'on':i<idx?'done':'')+'"><strong>'+(i<idx?'✓':(i+1))+'</strong>'+t+'</span>').join('');$('request').textContent='“'+order()[2]+'”';$('customerName').textContent=S.guests[S.round][0].toUpperCase()+' DIZ:';$('avatar').innerHTML=window.FoodArt?window.FoodArt.person(S.round):S.guests[S.round][1];document.body.className='mode-'+S.stage+(isDessert()?' course-dessert':'');}
@@ -214,19 +263,54 @@ function renderOrder(){S.stage='order';S.placed=[];S.locked=false;header();let t
 const coords=[[33,33],[65,34],[47,52],[32,66],[67,66],[50,22],[51,77],[75,49]];
 function drawToken(id,n){const isPizza=order()[0]==='pizza';let points=coords.slice(0,6);let bits=[];if(isPizza&&(id==='queijo'||id==='tomate'||id==='milho')){let css=id==='queijo'?'cheese':id==='tomate'?'tomato':'corn';points.forEach((xy,i)=>{bits.push('<span class="topping '+css+'" style="left:'+xy[0]+'%;top:'+xy[1]+'%;'+(id==='queijo'?'transform:translate(-50%,-50%) rotate('+(i*36)+'deg)':'')+'"></span>');});}else{let xy=coords[(n+1)%coords.length];bits.push('<span class="topping vector" style="left:'+xy[0]+'%;top:'+xy[1]+'%">'+foodIcon(id)+'</span>');}return bits.join('');}
 function plateHTML(){let base=dish()[2],has=S.placed.includes(base),type=order()[0];let art=type==='pizza'?'<div class="pizza-dough"></div>':foodIcon(base);return '<div class="plate-zone"><span class="plate-label">'+(isDessert()?'SOBREMESA: ':'PRATO: ')+dish()[0].toUpperCase()+'</span><div class="plate" id="plate" aria-label="Prato: solte um ingrediente aqui"><div class="plate-art'+(has?'':' ghost')+'">'+art+'</div><div class="topping-area">'+S.placed.filter(id=>id!==base).map((id,i)=>drawToken(id,i)).join('')+'</div><span class="drop-hint" id="dropHint">'+(has?'SOLTE AQUI!':'COMECE PELA BASE')+'</span></div></div>';}
-function recipe(){return '<div class="receipt"><div class="receipt-top"><span>🧾 PEDIDO #'+String(S.round+1).padStart(2,'0')+'</span><span>'+S.guests[S.round][0].toUpperCase()+'</span></div><h3>'+(isDessert()?'🍨 ':'🍽️ ')+order()[1]+'</h3><div class="need-list">'+order()[3].map(id=>'<div class="need '+(S.placed.includes(id)?'check':'')+'"><i>'+foodIcon(id)+'</i>'+ingredients[id][0]+(S.placed.includes(id)?' ✓':'')+'</div>').join('')+'</div><p style="font-size:11px;color:#728b78;margin-top:9px">'+S.placed.length+' de '+order()[3].length+' ingredientes</p></div>';}
-function renderPrepare(){S.stage='prepare';S.placed=[];S.locked=false;let rest=sample(Object.keys(ingredients).filter(id=>!order()[3].includes(id))).slice(0,8-order()[3].length);S.palette=sample(order()[3].concat(rest));header();$('stageContent').innerHTML=stageHead(isDessert()?'🍓 SOBREMESA • PREPARAR':'🍳 PRATO PRINCIPAL • PREPARAR',isDessert()?'Monte a sobremesa!':'Monte o prato!','Arraste os ingredientes da despensa até o prato.')+'<div class="stagebody"><div id="plateHost">'+plateHTML()+'</div><p class="message" id="message">Comece pelo '+ingredients[dish()[2]][0].toLowerCase()+'! 🌈</p></div>';$('pantry').innerHTML='<div class="panhead"><small>🍓 DESPENSA</small><h3>Ingredientes</h3><p>Segure e arraste até o prato!</p></div><div class="pantryinner"><div class="pantrycards">'+S.palette.map(id=>'<button type="button" class="ingredient" data-id="'+id+'" title="Arraste '+ingredients[id][0]+' para o prato" aria-label="Arrastar '+ingredients[id][0]+' para o prato"><span class="emoji">'+foodIcon(id)+'</span><span class="label">'+ingredients[id][0]+'</span></button>').join('')+'</div><div id="recipe">'+recipe()+'</div></div>';$('tip').textContent='Arraste cada ingrediente até o prato. Sem pressa!';$('actions').innerHTML='<button class="secondary" id="clear">↻ Limpar</button><button class="primary" id="serve" disabled>Servir 🍽️</button>';$('clear').onclick=()=>{S.placed=[];update();sfx('good');};$('serve').onclick=serve;document.querySelectorAll('.ingredient').forEach(b=>{b.addEventListener('pointerdown',startDrag);b.addEventListener('click',e=>{if(e.detail===0)add(b.dataset.id);});});update();}
-function update(){if(S.stage!=='prepare')return;$('plateHost').innerHTML=plateHTML();$('recipe').innerHTML=recipe();document.querySelectorAll('.ingredient').forEach(b=>{let used=S.placed.includes(b.dataset.id);b.classList.toggle('placed',used);b.disabled=used;});let done=S.placed.length===order()[3].length;$('serve').disabled=!done;$('message').textContent=done?'Prontinho! Pode servir! 🎉':S.placed.length+' de '+order()[3].length+' ingredientes no prato';if(done){sfx('win');snack('Uau! Receita completa! ⭐');}}
-function add(id){if(S.stage!=='prepare'||S.placed.includes(id))return;let base=dish()[2];if(!S.placed.includes(base)&&id!==base){sfx('wrong');snack('Primeiro coloque '+ingredients[base][0].toLowerCase()+' no prato! 🍽️',true);return;}if(!order()[3].includes(id)){let b=document.querySelector('[data-id="'+id+'"]');if(b){b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');}sfx('wrong');snack('Ops! '+ingredients[id][0]+' não faz parte do pedido.',true);return;}S.placed.push(id);sfx('good');update();}
+function recipe(){
+ const wanted=order()[3],right=S.placed.filter(id=>wanted.includes(id)),wrong=S.placed.filter(id=>!wanted.includes(id));
+ return '<div class="receipt"><div class="receipt-top"><span>COMANDA #'+String(S.round+1).padStart(2,'0')+'</span><span>'+S.guests[S.round][0].toUpperCase()+'</span></div><h3>'+order()[1]+'</h3><div class="need-list">'+wanted.map(id=>'<div class="need '+(right.includes(id)?'check':'')+'"><i>'+foodIcon(id)+'</i>'+ingredients[id][0]+(right.includes(id)?' ✓':'')+'</div>').join('')+'</div><p class="recipe-progress">'+right.length+' de '+wanted.length+' ingredientes pedidos'+(wrong.length?' • '+wrong.length+' diferente'+(wrong.length>1?'s':''):'')+'</p></div>';
+}
+function renderPrepare(){S.stage='prepare';S.placed=[];S.locked=false;let rest=sample(Object.keys(ingredients).filter(id=>!order()[3].includes(id))).slice(0,8-order()[3].length);S.palette=sample(order()[3].concat(rest));header();$('stageContent').innerHTML=stageHead(isDessert()?'🍓 SOBREMESA • PREPARAR':'🍳 PRATO PRINCIPAL • PREPARAR',isDessert()?'Monte a sobremesa!':'Monte o prato!','Arraste os ingredientes da despensa até o prato.')+'<div class="stagebody"><div id="plateHost">'+plateHTML()+'</div><p class="message" id="message">Comece pelo '+ingredients[dish()[2]][0].toLowerCase()+'! 🌈</p></div>';$('pantry').innerHTML='<div class="panhead"><small>🍓 DESPENSA</small><h3>Ingredientes</h3><p>Segure e arraste até o prato!</p></div><div class="pantryinner"><div class="pantrycards">'+S.palette.map(id=>'<button type="button" class="ingredient" data-id="'+id+'" title="Arraste '+ingredients[id][0]+' para o prato" aria-label="Arrastar '+ingredients[id][0]+' para o prato"><span class="emoji">'+foodIcon(id)+'</span><span class="label">'+ingredients[id][0]+'</span></button>').join('')+'</div><div id="recipe">'+recipe()+'</div></div>';$('tip').textContent='Pode inventar: a avaliação depende dos ingredientes certos e errados.';$('actions').innerHTML='<button class="secondary" id="clear">↻ Limpar</button><button class="primary" id="serve" disabled>Servir 🍽️</button>';$('clear').onclick=()=>{S.placed=[];update();sfx('good');};$('serve').onclick=serve;document.querySelectorAll('.ingredient').forEach(b=>{b.addEventListener('pointerdown',startDrag);b.addEventListener('click',e=>{if(e.detail===0)add(b.dataset.id);});});update();}
+function update(){
+ if(S.stage!=='prepare')return;
+ $('plateHost').innerHTML=plateHTML();
+ $('recipe').innerHTML=recipe();
+ document.querySelectorAll('.ingredient').forEach(b=>{
+   const used=S.placed.includes(b.dataset.id);
+   b.classList.toggle('placed',used);b.disabled=used;
+ });
+ const ready=S.placed.length>0;
+ $('serve').disabled=!ready;
+ const good=S.placed.filter(id=>order()[3].includes(id)).length;
+ const bad=S.placed.length-good;
+ $('message').textContent=good+' correto'+(good===1?'':'s')+' • '+bad+' diferente'+(bad===1?'':'s');
+}
+function add(id){
+ if(S.stage!=='prepare'||S.placed.includes(id))return;
+ S.placed.push(id);
+ sfx(order()[3].includes(id)?'good':'wrong');
+ update();
+ if(!order()[3].includes(id))snack('Ingrediente adicionado. O cliente vai avaliar o resultado!',true);
+}
 function insidePlate(x,y){const el=$('plate');if(!el)return false;let r=el.getBoundingClientRect();return x>=r.left-18&&x<=r.right+18&&y>=r.top-18&&y<=r.bottom+18;}
 function startDrag(e){let b=e.currentTarget;if(b.disabled||S.stage!=='prepare')return;if(e.pointerType==='mouse'&&e.button!==0)return;drag={id:b.dataset.id,startX:e.clientX,startY:e.clientY,pointer:e.pointerId,el:b,moving:false,proxy:null};try{b.setPointerCapture(e.pointerId);}catch(err){}}
 function moveDrag(e){if(!drag||e.pointerId!==drag.pointer)return;let d=drag;if(!d.moving&&Math.hypot(e.clientX-d.startX,e.clientY-d.startY)>8){d.moving=true;d.el.classList.add('dragging');d.proxy=document.createElement('div');d.proxy.className='drag-proxy';d.proxy.innerHTML=foodIcon(d.id);document.body.appendChild(d.proxy);}if(d.moving){e.preventDefault();d.proxy.style.left=e.clientX+'px';d.proxy.style.top=e.clientY+'px';const p=$('plate');if(p)p.classList.toggle('hover',insidePlate(e.clientX,e.clientY));}}
 function releaseDrag(e){if(!drag||e.pointerId!==drag.pointer)return;const d=drag;drag=null;d.el.classList.remove('dragging');if(d.proxy)d.proxy.remove();let ok=d.moving&&insidePlate(e.clientX,e.clientY);let p=$('plate');if(p)p.classList.remove('hover');if(ok){add(d.id);}else if(d.moving){snack('Quase! Solte o ingrediente dentro do prato! 🍽️');}else{snack('Segure o ingrediente e arraste até o prato! 👆');}}
 function cancelDrag(e){if(drag&&e.pointerId===drag.pointer){if(drag.proxy)drag.proxy.remove();drag.el.classList.remove('dragging');drag=null;let p=$('plate');if(p)p.classList.remove('hover');}}
 window.addEventListener('pointermove',moveDrag,{passive:false});window.addEventListener('pointerup',releaseDrag);window.addEventListener('pointercancel',cancelDrag);
-function serve(){if(S.stage!=='prepare'||S.placed.length!==order()[3].length)return;S.stage='serve';S.stars+=3;header();sfx('win');show('<div class="big">'+(isDessert()?'🍓':'🍽️')+'</div><h2 id="modalTitle">'+(isDessert()?'Sobremesa servida!':'Prato principal servido!')+'</h2><p>'+S.guests[S.round][0]+' adorou <b>'+order()[1]+'</b>!</p><div class="stars">⭐⭐⭐</div><button class="primary" id="next">'+(!isDessert()?'Preparar sobremesa →':S.round===3?'Ver minha festa 🎊':'Próximo cliente →')+'</button>');$('next').onclick=()=>{hide();if(!isDessert()){S.course='dessert';renderOrder();}else if(S.round===3){finish();}else{S.round++;S.course='main';renderOrder();}};}
+function serve(){
+ if(S.stage!=='prepare'||S.placed.length===0)return;
+ const result=rating();
+ S.stage='serve';S.stars+=result.stars;S.clientStars+=result.stars;
+ S.ratings.push({course:S.course,client:S.round,...result});
+ header();
+ if(result.stars>=2)sfx('win');else sfx('wrong');
+ const faces={excellent:'😍',good:'🙂',okay:'😐',low:'😕'};
+ const badge={excellent:'Adorou!',good:'Gostou',okay:'Mais ou menos',low:'Não gostou muito'};
+ show('<div class="big">'+faces[result.level]+'</div><h2 id="modalTitle">'+badge[result.level]+'</h2><p class="reaction-text">“'+result.response+'”</p><div class="stars">'+('⭐'.repeat(result.stars)||'☆')+'</div><div class="rating-meter"><span style="width:'+result.score+'%"></span></div><p class="rating-details">'+result.score+'% de satisfação • '+result.correct+' certos • '+result.wrong+' diferentes • '+result.missing+' faltando</p><button class="secondary" id="repeatReaction">🔊 Ouvir avaliação</button><div style="margin-top:13px"><button class="primary" id="next">'+(!isDessert()?'Preparar sobremesa →':S.round===3?'Ver minha festa':'Próximo cliente →')+'</button></div>');
+ $('repeatReaction').onclick=()=>say(result.response);
+ $('next').onclick=()=>{speechSynthesis?.cancel();hide();if(!isDessert()){S.course='dessert';renderOrder();}else if(S.round===3){finish();}else{S.round++;S.course='main';S.clientStars=0;renderOrder();}};
+ say(result.response);
+}
 function finish(){let best=0;try{best=Number(localStorage.getItem('cozinha-hanna-best'))||0;if(S.stars>best)localStorage.setItem('cozinha-hanna-best',String(S.stars));}catch(e){}show('<div class="big">🏆</div><h2 id="modalTitle">Hanna, você arrasou!</h2><p>Seu restaurante atendeu quatro clientes com prato principal e sobremesa e ganhou <b>'+S.stars+' estrelas</b>!<br>Recorde: '+Math.max(best,S.stars)+' ⭐</p><button class="primary" id="again">Jogar outra vez 💚</button>');$('again').onclick=()=>{hide();start();};}
-function start(){S.round=0;S.course='main';S.stars=0;S.placed=[];const mains=sample(['pizza','burger','salada','sanduiche']);const sweets=sample(['sorvete','panqueca','frutas','sorvete']);S.deck=mains.map((type,i)=>({main:sample(orders.filter(x=>x[0]===type))[0],dessert:sample(orders.filter(x=>x[0]===sweets[i]))[0]}));S.guests=sample(names.map((name,i)=>[name,faces[i]])).slice(0,4);renderOrder();}
+function start(){S.round=0;S.course='main';S.stars=0;S.placed=[];S.clientStars=0;S.ratings=[];S.speechProfiles=sample(speechSamples).slice(0,4);const mains=sample(['pizza','burger','salada','sanduiche']);const sweets=sample(['sorvete','panqueca','frutas','sorvete']);S.deck=mains.map((type,i)=>({main:sample(orders.filter(x=>x[0]===type))[0],dessert:sample(orders.filter(x=>x[0]===sweets[i]))[0]}));S.guests=sample(names.map((name,i)=>[name,faces[i]])).slice(0,4);renderOrder();}
 $('speak').onclick=speak;
 $('sound').onclick=()=>{S.sound=!S.sound;$('sound').textContent=S.sound?'🔊':'🔇';};
 $('restart').onclick=()=>{show('<div class="big">🍪</div><h2 id="modalTitle">Recomeçar?</h2><p>Quer atender os clientes desde o começo?</p><button class="primary" id="yes">Sim, vamos lá!</button><p style="margin-top:17px"><button class="secondary" id="no">Continuar jogando</button></p>');$('yes').onclick=()=>{hide();start();};$('no').onclick=hide;};
