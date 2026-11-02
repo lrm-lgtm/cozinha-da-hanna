@@ -159,7 +159,7 @@ body.mode-order .pan{display:none}
 </head>
 <body class="mode-order">
 <div class="app">
-<header><div class="brand"><div class="brand-icon" aria-hidden="true">CH</div><div><h1>Cozinha da Hanna</h1><small>Restaurante divertido</small></div></div><div class="controls"><div class="score" title="Estrelas"><span aria-hidden="true">⭐</span><b id="score">0</b></div><button class="iconbtn" id="sound" type="button" title="Ativar/desativar som" aria-label="Ativar ou desativar som">🔊</button><button class="iconbtn" id="restart" type="button" title="Recomeçar">↻</button></div></header>
+<header><div class="brand"><div class="brand-icon" aria-hidden="true">CH</div><div><h1>Cozinha da Hanna</h1><small>Restaurante divertido</small></div></div><div class="controls"><a href="missions.html" class="iconbtn" style="display:grid;place-items:center;text-decoration:none" title="Explorar 24 missões" aria-label="Abrir modo de missões">🗺️</a><div class="score" title="Estrelas"><span aria-hidden="true">⭐</span><b id="score">0</b></div><button class="iconbtn" id="sound" type="button" title="Ativar/desativar som" aria-label="Ativar ou desativar som">🔊</button><button class="iconbtn" id="restart" type="button" title="Recomeçar">↻</button></div></header>
 <div class="progress"><b id="round">CLIENTE 1 DE 5</b><div class="steps" id="steps"></div><b id="progressText">📝 Anote o pedido</b></div>
 <main class="game-layout">
 <aside class="panel guest"><div class="lamp">🟢 CLIENTE NO BALCÃO</div><div class="speech"><strong id="customerName">CLIENTE</strong><p id="request">O que vamos preparar hoje?</p></div><div class="avatar" id="avatar" aria-hidden="true">👧</div><button class="speak" id="speak" type="button" title="Ouvir o pedido">🔊 Ouvir pedido</button></aside>
@@ -283,7 +283,7 @@ $('speak').onclick=speak;
 $('sound').onclick=()=>{S.sound=!S.sound;$('sound').textContent=S.sound?'🔊':'🔇';$('sound').title=S.sound?'Desativar falas e som':'Ativar falas e som';if(!S.sound)window.HannaVoice.cancel();};
 $('restart').onclick=()=>{show('<div class="big">🍪</div><h2 id="modalTitle">Recomeçar?</h2><p>Quer atender os clientes desde o começo?</p><button class="primary" id="yes">Sim, vamos lá!</button><p style="margin-top:17px"><button class="secondary" id="no">Continuar jogando</button></p>');$('yes').onclick=()=>{hide();start();};$('no').onclick=hide;};
 start();
-show('<div class="big">👩‍🍳</div><h2 id="modalTitle">O restaurante da Hanna abriu!</h2><p>Atenda quatro clientes. Cada um terá sua própria voz e jeito de falar. Prepare o prato principal e depois a sobremesa!</p><div class="steps-guide"><span>👂 Ouça</span><span>📝 Anote</span><span>👆 Arraste</span><span>🍽️ Sirva!</span></div><button class="primary" id="play">Vamos cozinhar! ✨</button>');$('play').onclick=()=>{hide();sfx('win');};
+show('<div class="big">👩‍🍳</div><h2 id="modalTitle">O restaurante da Hanna abriu!</h2><p>Atenda quatro clientes. Cada um terá sua própria voz e jeito de falar. Prepare o prato principal e depois a sobremesa!</p><div class="steps-guide"><span>👂 Ouça</span><span>📝 Anote</span><span>👆 Arraste</span><span>🍽️ Sirva!</span></div><button class="primary" id="play">Vamos cozinhar! ✨</button><div style="margin-top:15px"><a href="missions.html" class="primary" style="display:inline-block;background:#bd8456;box-shadow:0 5px 0 #94613c;text-decoration:none">🗺️ Explorar 24 missões</a></div>');$('play').onclick=()=>{hide();sfx('win');};
 })();
 </script>
 </body>
