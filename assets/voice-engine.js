@@ -4,7 +4,7 @@
 */
 (function(root){
 "use strict";
-const natural=/natural|neural|online|premium|enhanced|aria|multilingual|google português|microsoft/i;
+const natural=/natural|neural|online|premium|enhanced|aria|multilingual|google português/i;
 const female=/francisca|luciana|maria|helena|camila|raquel|vitoria|vitória|isabela|female|feminina|mulher/i;
 const male=/antonio|antônio|daniel|ricardo|paulo|felipe|marcos|\bmale\b|masculino|homem/i;
 const men=new Set(["Theo","Davi","Pedro"]);
