@@ -1,62 +1,18 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Teste de missões — Cozinha da Hanna</title>
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Teste de migração das missões</title>
 <body><pre id="result">RUNNING</pre><iframe id="game" src="../missions.html" style="width:390px;height:844px;border:0"></iframe>
 <script>
 (async()=>{
-const out=document.getElementById("result"),iframe=document.getElementById("game");
-const sleep=n=>new Promise(r=>setTimeout(r,n));
-const fail=s=>{out.textContent="FAIL: "+s;throw Error(s);};
-const load=()=>new Promise((ok,no)=>{iframe.onload=ok;iframe.onerror=no;});
-await load();let w=iframe.contentWindow,d=iframe.contentDocument;
-const data=w.HannaMissions;
-if(!data||data.missions.length!==24||data.chapters.length!==6)fail("Quantidade de missões/capítulos incorreta");
-if(!w.HannaMissionArt?.person(0).includes("<svg"))fail("Retrato vetorial não carregou");
-if(!d.querySelector("[data-mission='manha-01']"))fail("Primeira missão bloqueada");
-if(d.querySelector("[data-mission='manha-02']"))fail("Missão seguinte deveria estar bloqueada");
-function checkScroll(stage){
- const root=d.documentElement,body=d.body,app=d.getElementById("missionApp");
- if(getComputedStyle(root).overflowY!=="hidden"||getComputedStyle(body).overflowY!=="hidden")fail("Overflow da página incorreto em "+stage);
- if(app.scrollHeight>app.clientHeight+2)fail("Scroll da aplicação em "+stage+": "+app.scrollHeight+">"+app.clientHeight);
- const scr=d.getElementById("screen");
- if(scr.scrollHeight>scr.clientHeight+3)fail("Conteúdo do jogo extravasa em "+stage);
-}
-async function simulate(id){
- const mission=data.get(id),r=data.recipes[mission.orders[0]];
- if(!d.querySelector("[data-progress]"))fail("Minijogo de preparo ausente em "+id);
- for(let i=0;i<4;i++){const b=d.querySelector("[data-progress]");if(!b)fail("Progresso não disponível "+id+" "+i);b.click();}
- if(!d.querySelector("[data-ingredient]"))fail("Despensa não apareceu após preparo: "+id);
- for(const item of r.needs){
-  const b=d.querySelector('[data-ingredient="'+item+'"]');
-  if(!b||b.disabled)fail("Ingrediente faltando "+item);
-  b.click();
- }
- const plate=d.getElementById("workdisc");
- if(!plate||!plate.querySelector(".plate-food.visible"))fail("Arte da base não apareceu: "+id);
- checkScroll("montagem "+id);
- const next=d.querySelector("[data-next-step]");if(!next||next.disabled)fail("Botão de próxima etapa ausente");next.click();
- if(r.cook){
-  const cook=d.querySelector("[data-cook]");if(!cook)fail("Estação de cozimento ausente");cook.click();
-  await sleep(1200);
- }
- const serve=d.querySelector("[data-serve]");if(!serve)fail("Servir indisponível "+id);serve.click();
- if(d.getElementById("modal").hidden)fail("Avaliação não abriu");
- const nextResult=d.querySelector("[data-result-next]");if(!nextResult)fail("Botão de continuar ausente");nextResult.click();
-}
-d.querySelector("[data-mission='manha-01']").click();
-checkScroll("mobile inicio da missão");
-await simulate("manha-01");
-const saved=JSON.parse(w.localStorage.getItem("hanna_missions_v1")||"{}");
-if(!saved["manha-01"]?.completed)fail("Não salvou a missão");
-if(!d.querySelector("[data-mission='manha-02']"))fail("Não liberou missão seguinte");
-for(const m of data.chapters[0].missions)saved[m.id]={completed:true,stars:3};
-w.localStorage.setItem("hanna_missions_v1",JSON.stringify(saved));
-iframe.src="../missions.html?mission=pizza-01";await load();w=iframe.contentWindow;d=iframe.contentDocument;
-if(!d.querySelector("[data-progress]"))fail("Missão pizza não abriu por URL");
-checkScroll("mobile pizza");
-await simulate("pizza-01");
-if(!JSON.parse(w.localStorage.getItem("hanna_missions_v1")||"{}")["pizza-01"]?.completed)fail("Pizza não concluiu");
-iframe.style.width="1180px";iframe.style.height="820px";
-await sleep(80);
-checkScroll("desktop mapa");
-out.textContent="PASS: 24 missões, 6 capítulos, etapas de preparo, forno, montagem, progresso salvo, desbloqueio e layout mobile/desktop";
+const f=document.getElementById("game"),out=document.getElementById("result");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+await sleep(1000);
+const d=f.contentDocument,w=f.contentWindow;
+if(!w.location.pathname.endsWith("/index.html"))throw Error("Página separada não redireciona ao restaurante original: "+w.location.pathname);
+if(!d.getElementById("missionsMenu"))throw Error("Menu integrado ausente");
+if(!w.HannaMissions||w.HannaMissions.missions.length!==24)throw Error("Catálogo não carregou");
+const play=d.getElementById("play");if(!play)throw Error("Restaurante não inicializou");play.click();
+d.getElementById("missionsMenu").click();
+if(d.querySelectorAll(".mission-pick").length!==24)throw Error("Missões não são listadas");
+if(d.querySelector(".play-layout"))throw Error("Cenário separado continua ativo");
+out.textContent="PASS: sem segundo jogo; link antigo redireciona; lista integrada com 24 missões";
 })().catch(e=>document.getElementById("result").textContent="FAIL: "+(e.stack||e));
 </script></body></html>
