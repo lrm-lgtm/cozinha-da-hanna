@@ -126,6 +126,7 @@ assert.equal(delayed.inspect().assigned.length,1);
 delayed.reset();
 assert.equal(delayed.inspect().assigned.length,0);
 // Se só houver voz explicitamente feminina, não inventar um homem.
+changing=[available[0]];
 const unavailableMale=delayed.speak('Olá!',male,{enabled:true});
 assert.equal(unavailableMale.spoken,false);
 assert.equal(unavailableMale.reason,'voices-loading');
