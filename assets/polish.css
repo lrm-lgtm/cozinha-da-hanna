@@ -157,3 +157,31 @@ header .brand-icon{width:48px;height:48px}
   .plate{width:min(175px,32dvh,85%)}
   .ingredient{min-height:43px}.ingredient .emoji{height:25px}.ingredient .food-art{width:24px;height:24px}
 }
+
+
+/* Progressão de pedidos integrada ao restaurante original — sem novas telas de preparo */
+.mission-list{max-height:min(49dvh,390px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:2px 6px 8px;margin:10px 0;text-align:left}
+.mission-group{margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed #e3d9ca}
+.mission-group h3{font-size:16px;color:#507761;margin:0 0 7px}
+.mission-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.mission-pick{background:#fcfaf1;border:2px solid #e6dacc;border-radius:11px;padding:9px;text-align:left;min-height:62px;display:flex;flex-direction:column;gap:3px;color:#48604f;box-shadow:0 2px 0 #ded2c2;cursor:pointer}
+.mission-pick:hover:not(:disabled){background:#e9f4e9;border-color:#a6c9ac}
+.mission-pick small{font-size:9px;color:#a5896d}
+.mission-pick b{font-family:'Nunito',sans-serif;font-size:12px}
+.mission-pick span{font-size:10px;color:#a9813f}
+.mission-pick.locked{opacity:.46;filter:grayscale(.5);box-shadow:none;cursor:default}
+.mission-menu-actions{text-align:center;margin-top:8px}
+.modal .mission-list{font-size:12px}
+@media(max-width:750px){
+ .modal{max-height:min(91dvh,720px);padding:15px 12px}
+ .modal .mission-list{max-height:48dvh;margin:7px 0}
+ .mission-pick{padding:7px;min-height:54px}
+ .mission-pick b{font-size:11px}
+ .mission-group h3{font-size:14px}
+ .progress{gap:3px;padding:4px 5px}
+ #round{font-size:9px;letter-spacing:-.3px}
+ #progressText{font-size:9px}
+}
+@media(max-height:550px){
+ .modal .mission-list{max-height:35dvh}
+}
