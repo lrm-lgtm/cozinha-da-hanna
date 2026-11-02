@@ -185,3 +185,94 @@ header .brand-icon{width:48px;height:48px}
 @media(max-height:550px){
  .modal .mission-list{max-height:35dvh}
 }
+
+
+/* V4: identidade gráfica de bistrô — volume, tipografia e materiais */
+:root{--ink-rich:#273e34;--copper:#b8845d;--cream-rich:#f5efe4}
+body{background:radial-gradient(ellipse at 6% 8%,#e4ede1 0,transparent 35%),radial-gradient(ellipse at 98% 93%,#eaddca 0,transparent 34%),#eeeae2}
+.app{max-width:1520px}
+.brand small{letter-spacing:1.65px;color:#b47d51}
+.panel{border-color:#dfd5c4;box-shadow:0 15px 32px #403a3012,0 4px 5px #403a3007}
+.stage{background:radial-gradient(ellipse at center 71%,#fcfaf3 15%,transparent 70%),linear-gradient(180deg,#f7f3ea 0 44%,#efe9de 44% 45%,#f9f5ec 45%);position:relative}
+.stage:before{content:"";position:absolute;z-index:0;inset:0 0 12%;background-image:linear-gradient(90deg,#dcd7cd55 1px,transparent 1px),linear-gradient(#dcd7cd55 1px,transparent 1px);background-size:64px 64px;opacity:.24;pointer-events:none}
+.stage:after{content:"";position:absolute;inset:auto 7% 12px;height:11px;border-radius:100%;background:#533b2314;filter:blur(12px);pointer-events:none}
+.stagehead{position:relative;z-index:1;background:linear-gradient(180deg,#fdfbf6 0%,#fdfaf5eb 84%,#fbf9f200);padding-bottom:16px}
+.stagehead h2{font-weight:800;color:#264f40;letter-spacing:-.5px}
+.stagehead p{font-weight:700;color:#878f82}
+.stagebody{position:relative;z-index:1}
+.choices{align-items:stretch;max-width:800px;gap:15px}
+.choice{min-height:232px;justify-content:space-between;gap:6px;border:1px solid #e4d5bd;background:linear-gradient(180deg,#fffdf7,#f8f1e6);box-shadow:0 8px 0 #b9a48729,0 14px 22px #6a4a2f14;position:relative;overflow:hidden;padding:12px 6px 15px;transition:transform .16s,box-shadow .16s,border-color .16s}
+.choice:before{content:"";position:absolute;top:-44px;left:13%;right:13%;height:157px;border-radius:50%;background:radial-gradient(circle,#fffdf6 0 56%,#f0e7d6 57% 68%,transparent 70%);opacity:.95;pointer-events:none}
+.choice:after{content:"";position:absolute;top:145px;left:17%;right:17%;height:8px;background:#64533d24;filter:blur(8px);border-radius:50%;pointer-events:none}
+.choice:hover{transform:translateY(-4px);box-shadow:0 12px 0 #b9a48724,0 17px 26px #6a4a2f23;border-color:#bfa581;background:linear-gradient(#fffdf8,#f9f0e1)}
+.choice .emoji{height:130px;position:relative;z-index:1;display:flex;justify-content:center;align-items:center;padding-top:3px;filter:drop-shadow(0 6px 3px #5c433820)}
+.choice .food-art{width:125px;height:125px;max-width:none;filter:drop-shadow(0 3px 3px #694a302d)}
+.choice b{position:relative;z-index:2;color:#355746;font-size:19px;line-height:1.1;letter-spacing:-.15px}
+.choice small{position:relative;z-index:2;font-size:9px;letter-spacing:1px;color:#ac7a50;background:#f5ebe0;border-radius:50px;padding:5px 10px}
+.choice small:before{content:"✦  ";font-size:9px}
+.plate{background:radial-gradient(circle at 39% 27%,#fff 0 49%,#edf3e9 54%,#fcfffc 62%,#c6d7c9 69%,#e7eee9 73%);box-shadow:0 13px 0 #796a5930,0 20px 28px #5e6e6535}
+.plate-art .food-art{max-width:240px;max-height:240px;filter:drop-shadow(0 7px 6px #493a282d)}
+.pizza-dough{filter:drop-shadow(0 6px 3px #8e632844)}
+.guest{background:linear-gradient(180deg,#f7f3e9 0%,#f5f0e5 73%,#e5d3bc 73%,#e6d2b6 100%);justify-content:space-between;position:relative;isolation:isolate}
+.guest:before{content:"";position:absolute;inset:7% 8% 27%;background:radial-gradient(ellipse at 50% 48%,#fffaf0,#f3ece0 60%,transparent 72%);border-radius:150px;z-index:-1}
+.guest:after{content:"";position:absolute;bottom:22%;left:19%;right:19%;height:13px;border-radius:50%;background:#60473718;filter:blur(7px);z-index:-1}
+.guest .lamp{border-radius:30px;background:#f2eee5;color:#658b77;padding:5px 10px;font-size:10px}
+.guest .lamp:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#4daf78;margin-right:7px}
+.guest .speech{border-color:#e2d2bc;background:#fffefa;box-shadow:0 4px 0 #d6c3ab;max-width:100%;margin-top:4px;flex:0 0 auto}
+.guest .speech strong{color:#9e6f50;letter-spacing:1.1px}
+.guest .speech p{color:#384e43;font-weight:850}
+.avatar{width:100%;height:clamp(145px,30dvh,295px);max-height:295px;min-height:0;display:flex;align-items:flex-end;justify-content:center;filter:none;flex:1 1 0}
+.avatar .person-art{max-height:100%;max-width:100%;height:100%;width:auto;filter:drop-shadow(0 7px 4px #533e3233)}
+.speak{background:#fffaf0;border-color:#e6ceb4;letter-spacing:.15px}
+.pan{background:linear-gradient(#fffdfa,#f9f6ee)}
+.panhead{background:linear-gradient(160deg,#f5efe3,#fffcf7);border-bottom:1px solid #e6ddcf}
+.order-help{display:flex;justify-content:center;align-items:center;flex:1;padding:20px 13px}
+.order-paper{width:min(290px,98%);min-height:275px;background:repeating-linear-gradient(0deg,#fffefb 0 39px,#eae3d8 40px 41px);border:1px solid #e7d8bb;box-shadow:0 4px 0 #e9dfcd,0 13px 25px #7b604024;padding:20px 14px 9px;border-radius:10px;transform:rotate(-1deg);color:#507160;position:relative}
+.order-paper:before{content:"";position:absolute;left:-6px;top:19px;bottom:19px;width:10px;background:radial-gradient(circle at center,#baa98e 0 3px,transparent 4px) 0 0/10px 33px repeat-y}
+.paper-title{display:block;font-size:12px;letter-spacing:1.4px;color:#a58053;font-weight:900;text-align:center}
+.paper-rule{height:2px;background:#d6b994;margin:12px 0 19px}
+.paper-row{display:grid;grid-template-columns:32px 1fr 15px;align-items:center;min-height:39px;font-size:12px;gap:5px;text-align:left}
+.paper-row b{font-family:'Baloo 2',sans-serif;color:#b58b59;font-size:17px}
+.paper-dot{color:#c6b397;font-size:10px}
+.paper-bottom{font-size:9px;letter-spacing:1px;text-align:center;margin-top:11px;color:#aa9b86}
+.order-help .paper{display:none}
+.ingredient{background:linear-gradient(180deg,#fffefa,#f7f3e9);border-color:#e1d6c3}
+.ingredient .food-art{filter:drop-shadow(0 4px 3px #624d382e)}
+.ingredient:hover:not(:disabled){background:#f3f5ec;border-color:#a2b6a5}
+.receipt{background:#fffefb;box-shadow:0 5px 14px #564b3c11}
+.voice-config{text-align:left;max-width:430px;margin:10px auto 18px;display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.voice-config .voice-label{font-size:12px;color:#527665;letter-spacing:.2px;margin-top:5px}
+.voice-select{width:100%;background:#f9f8f3;color:#304c3f;border:2px solid #d6e0d2;border-radius:11px;padding:10px 12px;font:800 13px Nunito,system-ui,sans-serif;min-height:44px}
+.voice-config .secondary{width:100%;min-height:36px}
+.voice-config .voice-divider{height:1px;background:#ece4d7;margin:5px 0}
+.voice-config .voice-notice{font-size:11px;color:#7a8d7e;text-align:left;line-height:1.45;margin:7px 0 0}
+.modal .voice-intro{font-size:13px;line-height:1.4;margin-bottom:10px}
+@media(max-width:1050px){
+ .choice{min-height:180px}.choice .emoji{height:105px}.choice .food-art{width:97px;height:97px}.choice:after{top:120px}
+ .choice b{font-size:16px}.avatar{height:clamp(140px,23dvh,235px)}
+ .order-paper{min-height:225px}.paper-row{min-height:35px}
+}
+@media(max-width:750px){
+ .stagehead{padding:7px 4px 6px}
+ .choice{min-height:125px;padding:5px 2px 9px;border-radius:14px}
+ .choice .emoji{height:68px;padding:0}
+ .choice .food-art{height:68px;width:68px}
+ .choice:before{height:90px;top:-26px}
+ .choice:after{top:73px}
+ .choice b{font-size:13px}
+ .choice small{font-size:8px;padding:3px 5px;letter-spacing:0}
+ .guest{background:#f9f5eb}
+ .guest:after{display:none}
+ .guest .speech{flex:1;min-width:0;margin:0;padding:6px}
+ .avatar{order:2;height:65px!important;max-height:65px;flex:0 0 58px;width:58px}
+ .avatar .person-art{height:65px;max-height:65px;width:auto}
+ .order-help{padding:10px}.order-paper{min-height:180px}
+ .modal .voice-intro{font-size:11px}
+ .voice-config{gap:5px;max-height:48dvh;overflow:auto}
+ .voice-select{min-height:40px;padding:7px;font-size:12px}
+}
+@media(max-height:590px) and (min-width:751px){
+ .avatar{height:150px;max-height:150px}
+ .choice{min-height:130px}.choice .emoji{height:60px}.choice .food-art{height:65px;width:65px}.choice:after{top:80px}
+ .order-paper{min-height:170px}.paper-row{min-height:26px}
+}
