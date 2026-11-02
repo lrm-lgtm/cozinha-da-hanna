@@ -55,6 +55,43 @@ if(doc.querySelector(".play-layout"))fail("Segundo jogo ainda está renderizado"
 for(const [w,h] of [[390,844],[375,667],[360,640],[1200,850],[1366,768]]){
  frame.style.width=w+"px";frame.style.height=h+"px";await sleep(40);checkScroll(w+"x"+h);
 }
-out.textContent="PASS: missões integradas; 24 etapas; preparo original; estrelas; desbloqueio; vozes; cinco resoluções";
+// Cobrir missões avançadas com dois pedidos na mesma tela, incluindo sobremesa.
+const allDone={};
+for(const m of D.missions.slice(0,16))allDone[m.id]={completed:true,stars:3};
+win.localStorage.setItem("hanna_missions_v1",JSON.stringify(allDone));
+const loaded=new Promise((resolve,reject)=>{frame.onload=resolve;frame.onerror=reject;});
+frame.src="../index.html";
+await loaded;
+const d=frame.contentDocument,w=frame.contentWindow,catalog=w.HannaMissions;
+d.getElementById("play").click();
+if(!d.getElementById("round").textContent.includes("MISSÃO 17/24"))fail("Não retomou os pedidos avançados");
+async function serveAdvanced(recipeId){
+ const data=catalog.recipes[recipeId];
+ let kind=data.art;if(recipeId==="torrada"||recipeId==="omelete")kind=recipeId;
+ const card=d.querySelector('.choice[data-dish="'+kind+'"]');
+ if(!card)fail("Prato da missão avançada não apareceu: "+recipeId);
+ card.click();await sleep(510);
+ for(const id of data.needs){
+  let ingredient=d.querySelector('.ingredient[data-id="'+id+'"]');
+  if(!ingredient)fail("Ingrediente avançado ausente: "+id+" / "+recipeId);
+  ingredient.click();
+ }
+ const btn=d.getElementById("serve");if(!btn||btn.disabled)fail("Não pode servir o pedido "+recipeId);
+ btn.click();if(!d.getElementById("next"))fail("Avaliação ausente");
+ d.getElementById("next").click();
+}
+await serveAdvanced("pizza_tomate");
+if(!d.getElementById("round").textContent.includes("PEDIDO 2/2"))fail("Próximo pedido não continuou no mesmo restaurante");
+await serveAdvanced("salada");
+if(!d.getElementById("modalTitle")?.textContent.includes("Missão concluída"))fail("Missão com dois pedidos não terminou");
+if(!JSON.parse(w.localStorage.getItem("hanna_missions_v1")||"{}")["lotado-01"]?.completed)fail("Missão dupla não foi salva");
+const step=d.getElementById("nextMission");if(!step)fail("Missão seguinte não foi liberada");
+step.click();
+await serveAdvanced("burger_queijo");
+if(!d.getElementById("round").textContent.includes("SOBREMESA")){/* Cabeçalho resume missão e pedido, não precisa conter a palavra. */}
+if(!d.querySelector('.choice[data-dish="sorvete"]'))fail("Sobremesa não virou pedido no mesmo restaurante");
+await serveAdvanced("sorvete_morango");
+if(!d.getElementById("modalTitle")?.textContent.includes("Missão concluída"))fail("Missão com sobremesa não terminou");
+out.textContent="PASS: missões integradas; 24 etapas; progresso; receitas duplas; sobremesa; layout em cinco resoluções";
 })().catch(e=>document.getElementById("result").textContent="FAIL: "+(e.stack||e));
 </script></body></html>
