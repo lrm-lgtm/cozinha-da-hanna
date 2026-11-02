@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff8ed">
+<meta name="description" content="Cozinha da Hanna: receba pedidos e arraste ingredientes para montar pratos divertidos.">
+<title>Cozinha da Hanna 🍕</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap');
+:root{--mint:#d8f8df;--green:#258465;--dark:#284e43;--cream:#fffaf0;--edge:#ead8bc;--coral:#ee886e;--yellow:#ffca70}
+*{box-sizing:border-box}
+html{background:#fff7e8;min-height:100%}
+body{margin:0;min-height:100dvh;color:#46544a;font-family:Nunito,system-ui,sans-serif;font-weight:800;background:radial-gradient(circle at 10% 8%,#c8f8e6,transparent 30%),radial-gradient(circle at 95% 95%,#ffe3a9,transparent 31%),#fff9eb}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid #168add;outline-offset:2px}
+.app{width:min(1450px,100%);margin:auto;min-height:100dvh;padding:16px 19px;display:flex;flex-direction:column;gap:13px}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-icon{width:58px;height:58px;border-radius:21px;background:#fff;border:3px solid #f9d893;display:grid;place-items:center;font-size:31px;box-shadow:0 5px 0 #f0d0a5;transform:rotate(-5deg)}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{font-family:'Baloo 2',system-ui,sans-serif;line-height:1.14}
+h1{font-size:clamp(25px,3.3vw,39px);color:var(--dark)}
+.brand small{display:block;color:#ad7c53;text-transform:uppercase;font-size:11px;letter-spacing:1.2px;font-weight:900}
+.controls{display:flex;align-items:center;gap:8px}
+.score,.iconbtn{background:#fffefa;border:2px solid var(--edge);height:46px;border-radius:16px;box-shadow:0 4px 0 #efdfc9;color:#3a7863}
+.score{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:20px}
+.iconbtn{width:46px;font-size:22px}
+.progress{background:#fffefa;border:2px solid #efdfc6;border-radius:19px;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:52px;padding:8px 18px;color:#708377;font-size:13px}
+.steps{display:flex;align-items:center;gap:9px}
+.steps span{display:flex;align-items:center;gap:4px;opacity:.57}
+.steps span strong{display:grid;place-items:center;background:#f2eedf;color:#87978b;border-radius:50%;width:26px;height:26px}
+.steps span.on{opacity:1;color:#286f57}.steps span.on strong{background:#bde9cb;color:#226c57}
+.steps span.done{opacity:1;color:#36956c}.steps span.done strong{background:#36956c;color:white}
+.game-layout{display:grid;grid-template-columns:minmax(220px,.82fr) minmax(350px,1.68fr) minmax(268px,1.1fr);gap:15px;flex:1;align-items:stretch}
+.panel{border:2px solid var(--edge);border-radius:28px;background:#fffefa;box-shadow:0 8px 0 #c6a97b12,0 20px 40px #655c4014;overflow:hidden;min-width:0}
+.guest{background:linear-gradient(#fff9ec 0 80%,#ffe3b9 80%);padding:19px 15px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:420px}
+.lamp{font-size:11px;color:#b47757;letter-spacing:.8px;align-self:flex-start}
+.speech{width:100%;background:white;border:2px solid #e9d6c2;border-radius:21px;padding:18px 13px;text-align:center;box-shadow:0 5px 0 #ecd9c1;margin-top:auto;position:relative}
+.speech:after{content:"";position:absolute;width:15px;height:15px;bottom:-9px;left:calc(50% - 8px);background:white;border-bottom:2px solid #e9d6c2;border-right:2px solid #e9d6c2;transform:rotate(45deg)}
+.speech strong{display:block;font-size:12px;color:#e67d61;letter-spacing:.5px;margin-bottom:6px}
+.speech p{font-size:clamp(14px,1.25vw,18px);color:#425346;line-height:1.4}
+.avatar{font-size:clamp(92px,10vw,150px);height:190px;display:grid;place-items:center;filter:drop-shadow(0 14px 2px #ae87572c)}
+.speak{border:2px solid #edceae;border-radius:14px;padding:9px 14px;background:#fff9ee;color:#ad7750;font-size:12px}
+.stage{background:repeating-linear-gradient(0deg,#fffdf8 0 54px,#f5eee1 55px 56px);display:flex;flex-direction:column;min-height:545px}
+.stagehead{text-align:center;padding:26px 16px 12px}
+.eyebrow{display:inline-block;background:#e4f7e8;border-radius:50px;color:#298b6a;padding:4px 12px;font-size:11px;letter-spacing:.9px}
+.stagehead h2{color:#244f42;font-size:clamp(26px,3vw,38px);margin:8px 0 2px}
+.stagehead p{color:#87958c;font-size:13px}
+.stagebody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;gap:12px}
+.choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;width:100%}
+.choice{background:#fff9e9;border:3px solid #eedbc2;border-radius:24px;min-height:214px;padding:12px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-shadow:0 7px 0 #ead8bb}
+.choice:hover{border-color:#f9c785;transform:translateY(-2px)}
+.choice:active{transform:translateY(4px)}
+.choice .emoji{font-size:clamp(52px,5.5vw,82px);line-height:1.1}
+.choice b{font-family:'Baloo 2',system-ui;font-size:17px;color:#405a49}
+.choice small{font-size:10px;color:#a58464}
+.message{text-align:center;font-size:13px;min-height:22px;color:#6a8c72}
+.panhead{padding:18px 16px 12px;background:#fff8eb;border-bottom:2px dashed #eadbc7}
+.panhead small{font-size:11px;color:#b47c55}
+.panhead h3{font-size:25px;color:#34584b}
+.panhead p{font-size:12px;color:#8e998e;margin-top:4px}
+.pantryinner{padding:13px}
+.pantrycards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.ingredient{min-width:0;min-height:83px;border:2px solid #ebdbc5;border-radius:15px;background:#fffaf0;box-shadow:0 5px 0 #edddc8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;touch-action:none;user-select:none;cursor:grab}
+.ingredient:hover{border-color:#f5c379;background:#fff4d9}
+.ingredient .emoji{font-size:34px;pointer-events:none;line-height:1}
+.ingredient .label{font-weight:900;font-size:12px;pointer-events:none}
+.ingredient.placed{background:#e0f8e8;border-color:#8cdab1;box-shadow:0 4px 0 #c2ead0;cursor:default}
+.ingredient.placed:after{content:"✓";position:absolute;right:5px;top:4px;font-size:12px;background:#40aa79;color:white;border-radius:50%;width:19px;height:19px;display:grid;place-items:center}
+.ingredient.dragging{opacity:.35}
+.ingredient.wrong{animation:shake .3s}
+.ingredient:disabled{opacity:.8}
+.receipt{border:2px dashed #e3ceae;background:white;border-radius:17px;margin-top:16px;padding:12px}
+.receipt-top{display:flex;justify-content:space-between;gap:6px;font-size:10px;color:#ae9878}
+.receipt h3{font-size:19px;color:#325e4d;margin:8px 0}
+.need-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.need{background:#fff9ed;border:1px solid #eee3d4;border-radius:10px;padding:5px;display:flex;align-items:center;gap:5px;font-size:10px}
+.need i{font-style:normal;font-size:19px}
+.need.check{background:#e4f8e9;border-color:#bae6c5;color:#27724f}
+.order-help{text-align:center;padding:23px 15px;color:#9c8768;font-size:16px;line-height:1.5}
+.order-help .paper{margin:5px auto 14px;border-radius:15px;border:2px dashed #e8d7b6;padding:26px;font-size:65px;background:#fffaf1}
+.plate-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;min-height:320px}
+.plate-label{background:#e6f6e8;color:#348266;border-radius:30px;font-size:12px;padding:5px 12px}
+.plate{width:min(290px,100%);aspect-ratio:1/1;position:relative;border-radius:50%;background:radial-gradient(circle at 43% 35%,#fff 0 53%,#e5f1e9 54% 62%,#fff 63% 68%,#c7dbd0 69% 72%,#fff 73%);border:7px solid #fff;box-shadow:0 12px 0 #45655718,0 17px 25px #53604d20;transition:box-shadow .14s,transform .14s;display:grid;place-items:center}
+.plate:before{content:"";position:absolute;inset:11%;border:2px dotted #d6e9dd;border-radius:50%}
+.plate.hover{transform:scale(1.035);box-shadow:0 0 0 9px #a8eabd,0 12px 0 #45655718,0 20px 28px #53604d20}
+.drop-hint{position:absolute;z-index:5;background:#f9fff4;border:2px solid #b4d9bd;border-radius:50px;padding:5px 10px;font-size:10px;color:#327f60;bottom:8%;pointer-events:none}
+.plate.hover .drop-hint{background:#2d9c75;color:white}
+.plate-art{position:absolute;inset:14%;display:grid;place-items:center;pointer-events:none;transition:opacity .2s}
+.plate-art.ghost{opacity:.14;filter:grayscale(1)}
+.pizza-dough{position:relative;width:100%;height:100%;border-radius:50%;border:12px solid #d49b55;background:radial-gradient(circle at 30% 26%,#fadd9a 0,#eac178 82%);box-shadow:inset 0 0 0 7px #efcf8f,inset -11px -9px 0 #dba96a,0 5px 0 #d1a16b}
+.pizza-dough:before{content:"";position:absolute;inset:8%;border-radius:50%;background:radial-gradient(circle at 68% 28%,#ed9c71 2%,transparent 12%),radial-gradient(circle at 33% 62%,#efac6f 2%,transparent 14%),radial-gradient(circle at 50% 50%,#f6b779,#efa46d)}
+.pizza-dough:after{content:"";position:absolute;width:14%;height:5%;left:16%;top:22%;background:#fff0bd;border-radius:50%;transform:rotate(-30deg);opacity:.7}
+.burger-art{width:95%;height:65%;border-radius:50% 50% 27% 27%;background:linear-gradient(#df9859 0 14%,#f2c477 16% 36%,#5aaf68 38% 43%,#8f4c36 47% 69%,#f6c879 71% 84%,#d88d50 87%);box-shadow:0 7px 0 #cb975c;transform:rotate(-6deg)}
+.sandwich-art{width:95%;height:85%;background:linear-gradient(140deg,#f8d8a5 0 43%,#a6ce80 44% 52%,#f4be7c 53%);clip-path:polygon(50% 4%,99% 92%,1% 92%);filter:drop-shadow(0 6px 1px #c48f55)}
+.icecream-art{width:70%;height:87%;background:linear-gradient(#f9a9c5 0 27%,#f6e8c9 27% 38%,#f4c379 39%);clip-path:polygon(5% 12%,95% 12%,60% 100%,40% 100%);border-radius:38% 38% 0 0}
+.salad-art{width:92%;height:92%;border-radius:50%;background:radial-gradient(circle at 25% 23%,#b9e88a 0 14%,transparent 15%),radial-gradient(circle at 72% 66%,#79bd66 0 24%,transparent 25%),radial-gradient(circle,#a2d977 10%,#4aa461 82%);box-shadow:0 5px 0 #99bdb0}
+.pancake-art{width:95%;height:70%;border-radius:50%;background:linear-gradient(#f4d28b 0 36%,#b67645 39% 47%,#f2c679 50% 70%,#ba7949 75% 85%,#f3cf81 86%);box-shadow:0 8px 0 #c58e58}
+.topping{position:absolute;z-index:3;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 2px 1px #684e3222)}
+.topping.emoji{font-size:clamp(21px,2.8vw,35px)}
+.topping.cheese{width:18%;height:12%;background:#ffe66d;border:2px solid #ffd056;border-radius:48% 35% 45% 41%;transform:translate(-50%,-50%) rotate(25deg)}
+.topping.cheese:after{content:"";position:absolute;inset:30% 37%;border-radius:50%;background:#f6bd40;opacity:.6}
+.topping.tomato{width:14%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#f0715c 18%,#d94439 24% 72%,#ba3833 75%);border:2px solid #f6876e;box-shadow:inset 0 0 0 3px #f36550}
+.topping.corn{width:10%;height:7%;border-radius:50%;background:#ffd54a;box-shadow:inset 0 -3px 0 #dca037}
+.topping-area{position:absolute;inset:0;pointer-events:none}
+.footer{display:flex;justify-content:space-between;align-items:center;gap:11px;padding:10px 15px;background:#fffdf7;border:2px solid var(--edge);border-radius:19px;min-height:70px}
+.tip{font-size:13px;color:#759080;max-width:63%}
+.actions{display:flex;gap:8px;align-items:center}
+.primary,.secondary{border-radius:15px;min-height:45px;padding:8px 17px;font-weight:900;white-space:nowrap}
+.primary{font-family:'Baloo 2',system-ui,sans-serif;background:#2c9c75;border:0;color:white;font-size:19px;box-shadow:0 5px 0 #1b7558}
+.primary:disabled{background:#a9c9b6;box-shadow:0 5px 0 #8fae9b;cursor:not-allowed}
+.primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #1b7558}
+.secondary{border:2px solid #e9d3b7;color:#ad8058;background:#fff7e9;font-size:12px}
+.drag-proxy{position:fixed;z-index:1000;transform:translate(-50%,-50%) rotate(-8deg);pointer-events:none;font-size:59px;filter:drop-shadow(0 8px 5px #0003)}
+.toast{position:fixed;z-index:2001;top:75px;left:50%;transform:translate(-50%,-13px);max-width:min(450px,95vw);background:white;border:3px solid #c8ecd4;box-shadow:0 10px 30px #234b3533;border-radius:18px;padding:13px 19px;text-align:center;font-size:14px;color:#2c775b;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.warning{border-color:#f4beaa;color:#af6753}
+.overlay{position:fixed;inset:0;z-index:3000;background:#17392c9c;display:grid;place-items:center;padding:15px;backdrop-filter:blur(4px)}
+.overlay[hidden]{display:none}
+.modal{background:#fffdf5;border:5px solid white;border-radius:32px;box-shadow:0 20px 0 #23423355,0 35px 65px #0003;padding:29px 20px;text-align:center;max-width:535px;width:100%;max-height:95dvh;overflow:auto}
+.modal .big{font-size:78px}
+.modal h2{font-size:clamp(29px,5vw,44px);color:#285b46;margin:6px 0 10px}
+.modal p{font-size:16px;color:#819080;line-height:1.5;margin:0 auto 19px;max-width:420px}
+.modal .steps-guide{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:15px 0 22px}
+.steps-guide span{background:#f6e8d3;color:#927b58;font-size:12px;border-radius:10px;padding:7px}
+.stars{font-size:43px;letter-spacing:4px;margin:8px}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+@media(max-width:1050px){.game-layout{grid-template-columns:minmax(170px,.75fr) minmax(300px,1.5fr) minmax(220px,1fr);gap:9px}.plate{width:min(250px,100%)}.plate-zone{min-height:275px}.ingredient{min-height:74px}.guest{padding:13px}.stage{min-height:520px}}
+@media(max-width:750px){
+.app{padding:9px 9px 85px;gap:8px}
+.brand-icon{height:44px;width:44px;font-size:24px;border-radius:15px}.brand{gap:7px}h1{font-size:25px}.brand small{font-size:9px;letter-spacing:.5px}
+.controls{gap:5px}.score,.iconbtn{height:37px;border-radius:12px}.score{padding:0 8px;font-size:17px}.iconbtn{width:37px;font-size:18px}
+.progress{padding:6px 10px;min-height:43px;font-size:10px}.steps{gap:3px}.steps span{font-size:0}.steps span strong{width:24px;height:24px;font-size:11px}
+.game-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"guest guest" "stage pantry";gap:8px;align-items:start}
+.guest{grid-area:guest;min-height:0;flex-direction:row;background:#fff9ed;gap:9px;padding:7px 9px}
+.guest .lamp{display:none}.speech{flex:1;margin:0;box-shadow:none;border-radius:13px;padding:8px}.speech:after{display:none}.speech strong{font-size:10px;margin-bottom:2px}.speech p{font-size:12px;line-height:1.25}
+.avatar{order:2;font-size:48px;height:auto}.speak{order:3;font-size:0;padding:5px;width:30px;height:36px}.speak:before{content:"🔊";font-size:18px}
+.stage{grid-area:stage;min-height:330px;position:sticky;top:5px;border-radius:20px;z-index:1}
+.pan{grid-area:pantry}.stagehead{padding:14px 5px 5px}.stagehead h2{font-size:22px;line-height:1.08;margin:5px 0 0}.stagehead p{font-size:10px}.eyebrow{font-size:9px;padding:3px 7px}
+.stagebody{padding:7px 5px;gap:6px;justify-content:start}
+.plate-zone{min-height:218px;gap:8px}.plate{width:min(190px,99%);border-width:5px}.plate-label{font-size:9px}.drop-hint{font-size:8px;padding:3px 5px}.message{font-size:11px}
+.pizza-dough{border-width:7px}
+.panhead{padding:10px 8px}.panhead small{font-size:9px}.panhead h3{font-size:19px}.panhead p{font-size:10px}
+.pantryinner{padding:6px}.pantrycards{gap:5px}.ingredient{min-height:68px;border-radius:11px;box-shadow:0 3px 0 #edddc8}.ingredient .emoji{font-size:27px}.ingredient .label{font-size:10px}
+.receipt{margin-top:9px;padding:7px}.receipt h3{font-size:15px;margin:5px 0}.need-list{gap:4px}.need{font-size:9px;padding:3px;gap:2px}.need i{font-size:14px}
+.footer{position:fixed;z-index:50;left:0;right:0;bottom:0;border-radius:17px 17px 0 0;box-shadow:0 -7px 25px #345b4828;padding:8px 12px calc(8px + env(safe-area-inset-bottom));min-height:65px}
+.tip{font-size:10px;max-width:47%}.primary{font-size:17px;min-height:42px;padding:5px 12px}.secondary{font-size:10px;padding:5px 9px;min-height:39px}
+body.mode-order .game-layout{grid-template-columns:1fr;grid-template-areas:"guest" "stage"}
+body.mode-order .stage{position:relative;min-height:310px}
+body.mode-order .stagebody{padding:14px}
+body.mode-order .pan{display:none}
+.choices{gap:7px}.choice{min-height:142px;border-radius:16px;border-width:2px;gap:5px;box-shadow:0 4px 0 #ead8bb}.choice .emoji{font-size:45px}.choice b{font-size:13px}.choice small{font-size:9px}
+}
+@media(max-width:365px){h1{font-size:22px}.brand small{display:none}.ingredient .label{font-size:9px}.plate{width:160px}.plate-zone{min-height:191px}.stage{min-height:300px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="mode-order">
+<div class="app">
+<header><div class="brand"><div class="brand-icon" aria-hidden="true">👩‍🍳</div><div><h1>Cozinha da Hanna</h1><small>Restaurante divertido</small></div></div><div class="controls"><div class="score" title="Estrelas"><span aria-hidden="true">⭐</span><b id="score">0</b></div><button class="iconbtn" id="sound" type="button" title="Ativar/desativar som" aria-label="Ativar ou desativar som">🔊</button><button class="iconbtn" id="restart" type="button" title="Recomeçar">↻</button></div></header>
+<div class="progress"><b id="round">CLIENTE 1 DE 5</b><div class="steps" id="steps"></div><b id="progressText">📝 Anote o pedido</b></div>
+<main class="game-layout">
+<aside class="panel guest"><div class="lamp">🟢 CLIENTE NO BALCÃO</div><div class="speech"><strong id="customerName">CLIENTE</strong><p id="request">O que vamos preparar hoje?</p></div><div class="avatar" id="avatar" aria-hidden="true">👧</div><button class="speak" id="speak" type="button" title="Ouvir o pedido">🔊 Ouvir pedido</button></aside>
+<section class="panel stage" id="stage" aria-label="Mesa de preparo"><div id="stageContent"></div></section>
+<aside class="panel pan" id="pantry" aria-label="Ingredientes e comanda"></aside>
+</main>
+<footer class="footer"><p class="tip" id="tip">Escute o pedido e escolha o prato certo!</p><div class="actions" id="actions"></div></footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden></div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const ingredients={massa:['Massa de pizza','🫓'],queijo:['Queijo','🧀'],tomate:['Tomate','🍅'],milho:['Milho','🌽'],pao:['Pão','🍞'],carne:['Hambúrguer','🥩'],alface:['Alface','🥬'],morango:['Morango','🍓'],banana:['Banana','🍌'],chocolate:['Chocolate','🍫'],confeitos:['Confeitos','🍬'],casquinha:['Casquinha','🍦'],pepino:['Pepino','🥒'],cenoura:['Cenoura','🥕'],panqueca:['Panqueca','🥞'],mel:['Mel','🍯'],ovo:['Ovo','🥚']};
+const dishes={pizza:['Pizza','🍕','massa'],burger:['Hambúrguer','🍔','pao'],sorvete:['Sorvete','🍨','casquinha'],salada:['Salada','🥗','alface'],panqueca:['Panqueca','🥞','panqueca'],sanduiche:['Sanduíche','🥪','pao']};
+const orders=[
+['pizza','Pizza de queijo e tomate','Uma pizza com queijo e tomate, por favor!',['massa','queijo','tomate']],
+['pizza','Pizza de queijo e milho','Quero uma pizza com queijo e milho!',['massa','queijo','milho']],
+['burger','Hambúrguer de queijo e alface','Um hambúrguer com queijo e alface!',['pao','carne','queijo','alface']],
+['burger','Hambúrguer com tomate','Quero hambúrguer com tomate e queijo!',['pao','carne','tomate','queijo']],
+['sorvete','Sorvete de morango e banana','Um sorvete com morango e banana!',['casquinha','morango','banana']],
+['sorvete','Sorvete com chocolate','Quero sorvete com chocolate e confeitos!',['casquinha','chocolate','confeitos']],
+['salada','Salada de tomate e pepino','Uma salada com alface, tomate e pepino!',['alface','tomate','pepino']],
+['salada','Salada de cenoura e milho','Quero salada com alface, cenoura e milho!',['alface','cenoura','milho']],
+['panqueca','Panqueca com banana e mel','Uma panqueca com banana e mel, por favor!',['panqueca','banana','mel']],
+['panqueca','Panqueca com morango','Quero panqueca de morango com chocolate!',['panqueca','morango','chocolate']],
+['sanduiche','Sanduíche de queijo e tomate','Um sanduíche de queijo e tomate!',['pao','queijo','tomate']],
+['sanduiche','Sanduíche de ovo e alface','Quero sanduíche com ovo e alface!',['pao','ovo','alface']]
+];
+const names=['Nina','Sofia','Theo','Bia','Lili','Davi','Pedro'];
+const faces=['👧🏽','👧🏻','👦🏽','👧🏿','👧🏼','👦🏻','👦🏼'];
+const S={round:0,stage:'order',stars:0,placed:[],deck:[],guests:[],palette:[],sound:true,locked:false};
+let drag=null,toastTimer=0,audio=null;
+function sample(arr){let a=arr.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));let z=a[i];a[i]=a[j];a[j]=z;}return a;}
+function order(){return S.deck[S.round];}
+function dish(){return dishes[order()[0]];}
+function snack(t,warn){const x=$('toast');x.textContent=t;x.className='toast show'+(warn?' warning':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>x.className='toast',2500);}
+function sfx(kind){if(!S.sound)return;try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let melody=kind==='wrong'?[220,185]:kind==='win'?[523,659,784]:[440,587];melody.forEach((v,i)=>{const osc=audio.createOscillator(),gain=audio.createGain(),start=audio.currentTime+i*.09;osc.type='sine';osc.frequency.value=v;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.055,start+.018);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+.18);});}catch(e){}}
+function speak(){try{if(!('speechSynthesis' in window)){snack('Este navegador não tem leitura em voz alta.');return;}speechSynthesis.cancel();let m=new SpeechSynthesisUtterance(order()[2]);m.lang='pt-BR';m.rate=.84;m.pitch=1.12;let voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('pt-br'));if(voice)m.voice=voice;speechSynthesis.speak(m);}catch(e){snack('Não foi possível ouvir o pedido agora.');}}
+function show(html){$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').hidden=false;}
+function hide(){$('overlay').hidden=true;$('overlay').innerHTML='';}
+function header(){let idx=['order','prepare','serve'].indexOf(S.stage);if(idx<0)idx=2;$('round').textContent='CLIENTE '+(S.round+1)+' DE 5';$('score').textContent=S.stars;$('progressText').textContent=S.stage==='order'?'📝 Anote o pedido':S.stage==='prepare'?'🍳 Vamos cozinhar!':'🎉 Prontinho!';$('steps').innerHTML=['Pedido','Preparar','Servir'].map((t,i)=>'<span class="'+(i===idx?'on':i<idx?'done':'')+'"><strong>'+(i<idx?'✓':(i+1))+'</strong>'+t+'</span>').join('');$('request').textContent='“'+order()[2]+'”';$('customerName').textContent=S.guests[S.round][0].toUpperCase()+' DIZ:';$('avatar').textContent=S.guests[S.round][1];document.body.className='mode-'+S.stage;}
+function stageHead(tag,title,sub){return '<div class="stagehead"><span class="eyebrow">'+tag+'</span><h2>'+title+'</h2><p>'+sub+'</p></div>';}
+function renderOrder(){S.stage='order';S.placed=[];S.locked=false;header();let type=order()[0];let choices=sample([type].concat(sample(Object.keys(dishes).filter(x=>x!==type)).slice(0,2)));$('stageContent').innerHTML=stageHead('📝 PASSO 1 • ATENDER','Qual prato foi pedido?','Escolha o desenho correto!')+'<div class="stagebody"><div class="choices">'+choices.map(k=>'<button type="button" class="choice" data-dish="'+k+'"><span class="emoji">'+dishes[k][1]+'</span><b>'+dishes[k][0]+'</b><small>ANOTAR PEDIDO</small></button>').join('')+'</div><p class="message" id="message">Atenção ao pedido! 💛</p></div>';$('pantry').innerHTML='<div class="panhead"><small>📒 CADERNINHO</small><h3>Anote o pedido</h3><p>Escute e escolha o prato.</p></div><div class="order-help"><div class="paper">📝</div>O pedido aparece quando você escolher o prato!</div>';$('tip').textContent='Ouça o cliente e escolha o prato!';$('actions').innerHTML='<button class="secondary" id="hear">🔊 Ouvir de novo</button>';$('hear').onclick=speak;document.querySelectorAll('.choice').forEach(btn=>btn.addEventListener('click',()=>{if(S.stage!=='order'||S.locked)return;if(btn.dataset.dish!==type){sfx('wrong');$('message').textContent='Quase! Tente outro prato. 💛';btn.style.borderColor='#efa88e';return;}S.locked=true;btn.style.borderColor='#68c99a';$('message').textContent='Pedido anotado! ✨';sfx('good');setTimeout(renderPrepare,420);}));}
+const coords=[[33,33],[65,34],[47,52],[32,66],[67,66],[50,22],[51,77],[75,49]];
+function drawToken(id,n){const isPizza=order()[0]==='pizza';let points=coords.slice(0,6);let bits=[];if(isPizza&&(id==='queijo'||id==='tomate'||id==='milho')){let css=id==='queijo'?'cheese':id==='tomate'?'tomato':'corn';points.forEach((xy,i)=>{bits.push('<span class="topping '+css+'" style="left:'+xy[0]+'%;top:'+xy[1]+'%;'+(id==='queijo'?'transform:translate(-50%,-50%) rotate('+(i*36)+'deg)':'')+'"></span>');});}else{let xy=coords[(n+1)%coords.length];bits.push('<span class="topping emoji" style="left:'+xy[0]+'%;top:'+xy[1]+'%">'+ingredients[id][1]+'</span>');}return bits.join('');}
+function plateHTML(){let base=dish()[2],has=S.placed.includes(base),type=order()[0];let art=type==='pizza'?'pizza-dough':type==='burger'?'burger-art':type==='sorvete'?'icecream-art':type==='salada'?'salad-art':type==='panqueca'?'pancake-art':'sandwich-art';return '<div class="plate-zone"><span class="plate-label">'+dish()[0].toUpperCase()+'</span><div class="plate" id="plate" aria-label="Prato: solte um ingrediente aqui"><div class="plate-art'+(has?'':' ghost')+'"><div class="'+art+'"></div></div><div class="topping-area">'+S.placed.filter(id=>id!==base).map((id,i)=>drawToken(id,i)).join('')+'</div><span class="drop-hint" id="dropHint">'+(has?'SOLTE AQUI!':'COMECE PELA BASE')+'</span></div></div>';}
+function recipe(){return '<div class="receipt"><div class="receipt-top"><span>🧾 PEDIDO #'+String(S.round+1).padStart(2,'0')+'</span><span>'+S.guests[S.round][0].toUpperCase()+'</span></div><h3>'+dish()[1]+' '+order()[1]+'</h3><div class="need-list">'+order()[3].map(id=>'<div class="need '+(S.placed.includes(id)?'check':'')+'"><i>'+ingredients[id][1]+'</i>'+ingredients[id][0]+(S.placed.includes(id)?' ✓':'')+'</div>').join('')+'</div><p style="font-size:11px;color:#728b78;margin-top:9px">'+S.placed.length+' de '+order()[3].length+' ingredientes</p></div>';}
+function renderPrepare(){S.stage='prepare';S.placed=[];S.locked=false;let rest=sample(Object.keys(ingredients).filter(id=>!order()[3].includes(id))).slice(0,8-order()[3].length);S.palette=sample(order()[3].concat(rest));header();$('stageContent').innerHTML=stageHead('🍳 PASSO 2 • PREPARAR','Monte o prato!','Arraste da despensa até o prato.')+'<div class="stagebody"><div id="plateHost">'+plateHTML()+'</div><p class="message" id="message">Comece pelo '+ingredients[dish()[2]][0].toLowerCase()+'! 🌈</p></div>';$('pantry').innerHTML='<div class="panhead"><small>🍓 DESPENSA</small><h3>Ingredientes</h3><p>Segure e arraste até o prato!</p></div><div class="pantryinner"><div class="pantrycards">'+S.palette.map(id=>'<button type="button" class="ingredient" data-id="'+id+'" title="Arraste '+ingredients[id][0]+' para o prato" aria-label="Arrastar '+ingredients[id][0]+' para o prato"><span class="emoji">'+ingredients[id][1]+'</span><span class="label">'+ingredients[id][0]+'</span></button>').join('')+'</div><div id="recipe">'+recipe()+'</div></div>';$('tip').textContent='Arraste cada ingrediente até o prato. Sem pressa!';$('actions').innerHTML='<button class="secondary" id="clear">↻ Limpar</button><button class="primary" id="serve" disabled>Servir 🍽️</button>';$('clear').onclick=()=>{S.placed=[];update();sfx('good');};$('serve').onclick=serve;document.querySelectorAll('.ingredient').forEach(b=>{b.addEventListener('pointerdown',startDrag);b.addEventListener('click',e=>{if(e.detail===0)add(b.dataset.id);});});update();}
+function update(){if(S.stage!=='prepare')return;$('plateHost').innerHTML=plateHTML();$('recipe').innerHTML=recipe();document.querySelectorAll('.ingredient').forEach(b=>{let used=S.placed.includes(b.dataset.id);b.classList.toggle('placed',used);b.disabled=used;});let done=S.placed.length===order()[3].length;$('serve').disabled=!done;$('message').textContent=done?'Prontinho! Pode servir! 🎉':S.placed.length+' de '+order()[3].length+' ingredientes no prato';if(done){sfx('win');snack('Uau! Receita completa! ⭐');}}
+function add(id){if(S.stage!=='prepare'||S.placed.includes(id))return;let base=dish()[2];if(!S.placed.includes(base)&&id!==base){sfx('wrong');snack('Primeiro coloque '+ingredients[base][0].toLowerCase()+' no prato! 🍽️',true);return;}if(!order()[3].includes(id)){let b=document.querySelector('[data-id="'+id+'"]');if(b){b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');}sfx('wrong');snack('Ops! '+ingredients[id][0]+' não faz parte do pedido.',true);return;}S.placed.push(id);sfx('good');update();}
+function insidePlate(x,y){const el=$('plate');if(!el)return false;let r=el.getBoundingClientRect();return x>=r.left-18&&x<=r.right+18&&y>=r.top-18&&y<=r.bottom+18;}
+function startDrag(e){let b=e.currentTarget;if(b.disabled||S.stage!=='prepare')return;if(e.pointerType==='mouse'&&e.button!==0)return;drag={id:b.dataset.id,startX:e.clientX,startY:e.clientY,pointer:e.pointerId,el:b,moving:false,proxy:null};try{b.setPointerCapture(e.pointerId);}catch(err){}}
+function moveDrag(e){if(!drag||e.pointerId!==drag.pointer)return;let d=drag;if(!d.moving&&Math.hypot(e.clientX-d.startX,e.clientY-d.startY)>8){d.moving=true;d.el.classList.add('dragging');d.proxy=document.createElement('div');d.proxy.className='drag-proxy';d.proxy.textContent=ingredients[d.id][1];document.body.appendChild(d.proxy);}if(d.moving){e.preventDefault();d.proxy.style.left=e.clientX+'px';d.proxy.style.top=e.clientY+'px';const p=$('plate');if(p)p.classList.toggle('hover',insidePlate(e.clientX,e.clientY));}}
+function releaseDrag(e){if(!drag||e.pointerId!==drag.pointer)return;const d=drag;drag=null;d.el.classList.remove('dragging');if(d.proxy)d.proxy.remove();let ok=d.moving&&insidePlate(e.clientX,e.clientY);let p=$('plate');if(p)p.classList.remove('hover');if(ok){add(d.id);}else if(d.moving){snack('Quase! Solte o ingrediente dentro do prato! 🍽️');}else{snack('Segure o ingrediente e arraste até o prato! 👆');}}
+function cancelDrag(e){if(drag&&e.pointerId===drag.pointer){if(drag.proxy)drag.proxy.remove();drag.el.classList.remove('dragging');drag=null;let p=$('plate');if(p)p.classList.remove('hover');}}
+window.addEventListener('pointermove',moveDrag,{passive:false});window.addEventListener('pointerup',releaseDrag);window.addEventListener('pointercancel',cancelDrag);
+function serve(){if(S.stage!=='prepare'||S.placed.length!==order()[3].length)return;S.stage='serve';S.stars+=3;header();sfx('win');show('<div class="big">🥳</div><h2 id="modalTitle">Pedido entregue!</h2><p>'+S.guests[S.round][0]+' adorou o prato <b>'+order()[1]+'</b>!</p><div class="stars">⭐⭐⭐</div><button class="primary" id="next">'+(S.round===4?'Ver minha festa 🎊':'Próximo cliente →')+'</button>');$('next').onclick=()=>{hide();if(S.round===4){finish();}else{S.round++;renderOrder();}};}
+function finish(){let best=0;try{best=Number(localStorage.getItem('cozinha-hanna-best'))||0;if(S.stars>best)localStorage.setItem('cozinha-hanna-best',String(S.stars));}catch(e){}show('<div class="big">🏆</div><h2 id="modalTitle">Hanna, você arrasou!</h2><p>Seu restaurante atendeu cinco clientes felizes e ganhou <b>'+S.stars+' estrelas</b>!<br>Recorde: '+Math.max(best,S.stars)+' ⭐</p><button class="primary" id="again">Jogar outra vez 💚</button>');$('again').onclick=()=>{hide();start();};}
+function start(){S.round=0;S.stars=0;S.placed=[];let chosen=[],seen=new Set();for(let x of sample(orders)){if(!seen.has(x[0])){chosen.push(x);seen.add(x[0]);}if(chosen.length===5)break;}S.deck=sample(chosen);S.guests=sample(names.map((name,i)=>[name,faces[i]])).slice(0,5);renderOrder();}
+$('speak').onclick=speak;
+$('sound').onclick=()=>{S.sound=!S.sound;$('sound').textContent=S.sound?'🔊':'🔇';};
+$('restart').onclick=()=>{show('<div class="big">🍪</div><h2 id="modalTitle">Recomeçar?</h2><p>Quer atender os clientes desde o começo?</p><button class="primary" id="yes">Sim, vamos lá!</button><p style="margin-top:17px"><button class="secondary" id="no">Continuar jogando</button></p>');$('yes').onclick=()=>{hide();start();};$('no').onclick=hide;};
+start();
+show('<div class="big">👩‍🍳</div><h2 id="modalTitle">O restaurante da Hanna abriu!</h2><p>Atenda o cliente, anote o pedido e arraste os ingredientes para preparar comidas deliciosas!</p><div class="steps-guide"><span>👂 Ouça</span><span>📝 Anote</span><span>👆 Arraste</span><span>🍽️ Sirva!</span></div><button class="primary" id="play">Vamos cozinhar! ✨</button>');$('play').onclick=()=>{hide();sfx('win');};
+})();
+</script>
+</body>
+</html>
