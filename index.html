@@ -159,7 +159,7 @@ body.mode-order .pan{display:none}
 </head>
 <body class="mode-order">
 <div class="app">
-<header><div class="brand"><div class="brand-icon" aria-hidden="true">CH</div><div><h1>Cozinha da Hanna</h1><small>Restaurante divertido</small></div></div><div class="controls"><button class="iconbtn" id="missionsMenu" type="button" title="Pedidos e missões" aria-label="Abrir lista de missões">📋</button><div class="score" title="Estrelas"><span aria-hidden="true">⭐</span><b id="score">0</b></div><button class="iconbtn" id="sound" type="button" title="Ativar/desativar som" aria-label="Ativar ou desativar som">🔊</button><button class="iconbtn" id="restart" type="button" title="Recomeçar">↻</button></div></header>
+<header><div class="brand"><div class="brand-icon" aria-hidden="true">CH</div><div><h1>Cozinha da Hanna</h1><small>Restaurante divertido</small></div></div><div class="controls"><button class="iconbtn" id="missionsMenu" type="button" title="Pedidos e missões" aria-label="Abrir lista de missões">📋</button><button class="iconbtn" id="voiceSettings" type="button" title="Configurar vozes e pronúncia" aria-label="Configurar vozes e pronúncia">🎙</button><div class="score" title="Estrelas"><span aria-hidden="true">⭐</span><b id="score">0</b></div><button class="iconbtn" id="sound" type="button" title="Ativar/desativar som" aria-label="Ativar ou desativar som">🔊</button><button class="iconbtn" id="restart" type="button" title="Recomeçar">↻</button></div></header>
 <div class="progress"><b id="round">CLIENTE 1 DE 5</b><div class="steps" id="steps"></div><b id="progressText">📝 Anote o pedido</b></div>
 <main class="game-layout">
 <aside class="panel guest"><div class="lamp">🟢 CLIENTE NO BALCÃO</div><div class="speech"><strong id="customerName">CLIENTE</strong><p id="request">O que vamos preparar hoje?</p></div><div class="avatar" id="avatar" aria-hidden="true">👧</div><button class="speak" id="speak" type="button" title="Ouvir o pedido">🔊 Ouvir pedido</button></aside>
@@ -244,6 +244,30 @@ function missionMenu(){
  $('closeMissionMenu').onclick=hide;
  document.querySelectorAll('[data-mission-id]').forEach(b=>{b.onclick=()=>selectMission(b.dataset.missionId);});
 }
+function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function voiceSettings(){
+ window.HannaVoice.cancel();
+ const kit=window.HannaVoice,options=kit.getPreferences(),voices=kit.availableVoices();
+ const choices=(gender)=>{
+   let items=voices.filter(v=>/^pt(-|_)/i.test(v.lang));
+   const output='<option value="">Automática — melhor disponível</option>'+
+    items.map(v=>'<option value="'+escapeText(v.voiceURI)+'" '+(options[gender]===v.voiceURI?'selected':'')+'>'+escapeText(v.name)+' ('+escapeText(v.lang)+')</option>').join('');
+   return '<label class="voice-label" for="voice-'+gender+'">'+(gender==='female'?'Clientes com voz feminina':'Clientes com voz masculina')+'</label><select id="voice-'+gender+'" class="voice-select">'+output+'</select>';
+ };
+ const phonetics=kit.aliases.map(v=>'<option value="'+v+'" '+(options.pronunciation===v?'selected':'')+'>'+v+'</option>').join('');
+ show('<h2 id="modalTitle">Vozes dos clientes</h2><p class="voice-intro">Ajuste como os personagens falam. O nome continua escrito <b>Hanna</b>; só a pronúncia do áudio é modificada.</p><div class="voice-config"><label class="voice-label" for="pronounce">Pronúncia de Hanna</label><select id="pronounce" class="voice-select">'+phonetics+'</select><button id="tryPronunciation" class="secondary">▶ Ouvir “Chefe Hanna”</button><div class="voice-divider"></div>'+choices('female')+'<button id="tryFemale" class="secondary">▶ Testar voz feminina</button>'+choices('male')+'<button id="tryMale" class="secondary">▶ Testar voz masculina</button><p class="voice-notice">'+(voices.length?'Vozes disponíveis neste navegador: '+voices.length+'.':'O navegador ainda não disponibilizou vozes em português. Podem aparecer após carregar.')+' Para ter voz menos robótica, selecione uma opção “Natural” ou “Neural” quando existir.</p></div><button class="primary" id="saveVoiceSettings">Salvar e voltar</button>');
+ $('pronounce').onchange=v=>kit.setPronunciation(v.target.value);
+ for(const gender of ['female','male']){
+   $('voice-'+gender).onchange=e=>kit.setVoicePreference(gender,e.target.value);
+ }
+ const female=S.guests.find(g=>['Nina','Sofia','Bia','Lili'].includes(g[0]))?.[0]||'Sofia';
+ const male=S.guests.find(g=>['Theo','Davi','Pedro'].includes(g[0]))?.[0]||'Theo';
+ const probe=(name)=>kit.speak('Que comida maravilhosa, Chefe Hanna! Você arrasou na cozinha!',kit.profile(name,0),{enabled:true});
+ $('tryPronunciation').onclick=()=>probe(female);
+ $('tryFemale').onclick=()=>probe(female);
+ $('tryMale').onclick=()=>probe(male);
+ $('saveVoiceSettings').onclick=()=>{kit.cancel();hide();};
+}
 function dish(){return dishes[order()[0]];}
 function snack(t,warn){const x=$('toast');x.textContent=t;x.className='toast show'+(warn?' warning':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>x.className='toast',2500);}
 function sfx(kind){if(!S.sound)return;try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let melody=kind==='wrong'?[220,185]:kind==='win'?[523,659,784]:[440,587];melody.forEach((v,i)=>{const osc=audio.createOscillator(),gain=audio.createGain(),start=audio.currentTime+i*.09;osc.type='sine';osc.frequency.value=v;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.055,start+.018);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+.18);});}catch(e){}}
@@ -266,7 +290,7 @@ function rating(){
 }
 function show(html){$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').hidden=false;}
 function hide(){$('overlay').hidden=true;$('overlay').innerHTML='';}
-function header(){let idx=['order','prepare','serve'].indexOf(S.stage);if(idx<0)idx=2;$('round').textContent='MISSÃO '+(Missions.missions.indexOf(S.mission)+1)+'/24 · PEDIDO '+(S.round+1)+'/'+S.deck.length;$('score').textContent=S.stars;$('progressText').textContent=S.stage==='order'?(isDessert()?'🍨 Sobremesa':'📝 Anote o pedido'):S.stage==='prepare'?(isDessert()?'🍓 Prepare a sobremesa':'🍳 Prepare o prato'):'🎉 Prontinho!';$('steps').innerHTML=['Pedido','Preparar','Servir'].map((t,i)=>'<span class="'+(i===idx?'on':i<idx?'done':'')+'"><strong>'+(i<idx?'✓':(i+1))+'</strong>'+t+'</span>').join('');$('request').textContent='“'+(S.activeRequest||order()[2])+'”';$('customerName').textContent=S.guests[S.round][0].toUpperCase()+' DIZ:';$('avatar').innerHTML=window.FoodArt?window.FoodArt.person(S.round):S.guests[S.round][1];document.body.className='mode-'+S.stage+(isDessert()?' course-dessert':'');}
+function header(){let idx=['order','prepare','serve'].indexOf(S.stage);if(idx<0)idx=2;$('round').textContent='MISSÃO '+(Missions.missions.indexOf(S.mission)+1)+'/24 · PEDIDO '+(S.round+1)+'/'+S.deck.length;$('score').textContent=S.stars;$('progressText').textContent=S.stage==='order'?(isDessert()?'🍨 Sobremesa':'📝 Anote o pedido'):S.stage==='prepare'?(isDessert()?'🍓 Prepare a sobremesa':'🍳 Prepare o prato'):'🎉 Prontinho!';$('steps').innerHTML=['Pedido','Preparar','Servir'].map((t,i)=>'<span class="'+(i===idx?'on':i<idx?'done':'')+'"><strong>'+(i<idx?'✓':(i+1))+'</strong>'+t+'</span>').join('');$('request').textContent='“'+(S.activeRequest||order()[2])+'”';$('customerName').textContent=S.guests[S.round][0].toUpperCase()+' DIZ:';$('avatar').innerHTML=window.FoodArt?window.FoodArt.person(S.round,S.guests[S.round][0]):S.guests[S.round][1];document.body.className='mode-'+S.stage+(isDessert()?' course-dessert':'');}
 function stageHead(tag,title,sub){return '<div class="stagehead"><span class="eyebrow">'+tag+'</span><h2>'+title+'</h2><p>'+sub+'</p></div>';}
 function renderOrder(){S.stage='order';S.placed=[];S.locked=false;S.activeRequest=window.HannaVoice.request(order()[2],S.course,S.guests[S.round][0]);header();let type=order()[0];let pool=isDessert()?['sorvete','panqueca','frutas']:['pizza','burger','salada','sanduiche','torrada','omelete','panqueca','frutas'];let choices=sample([type].concat(sample(pool.filter(x=>x!==type)).slice(0,2)));$('stageContent').innerHTML=stageHead(isDessert()?'🍧 SOBREMESA • ANOTAR':'📝 PRATO PRINCIPAL • ANOTAR',isDessert()?'Qual sobremesa foi pedida?':'Qual prato foi pedido?','Escolha pela imagem e anote a comanda.')+'<div class="stagebody"><div class="choices">'+choices.map(k=>'<button type="button" class="choice" data-dish="'+k+'"><span class="emoji">'+dishIcon(k)+'</span><b>'+dishes[k][0]+'</b><small>ANOTAR PEDIDO</small></button>').join('')+'</div><p class="message" id="message">Confira a comanda e escolha com atenção.</p></div>';$('pantry').innerHTML='<div class="panhead"><small>📒 CADERNINHO</small><h3>Anote o pedido</h3><p>Escute e escolha o prato.</p></div><div class="order-help"><div class="paper">📝</div>O pedido aparece quando você escolher o prato!</div>';$('tip').textContent='Ouça o cliente e escolha o prato!';$('actions').innerHTML='<button class="secondary" id="hear">🔊 Ouvir de novo</button>';$('hear').onclick=speak;document.querySelectorAll('.choice').forEach(btn=>btn.addEventListener('click',()=>{if(S.stage!=='order'||S.locked)return;if(btn.dataset.dish!==type){sfx('wrong');$('message').textContent='Quase! Tente outro prato. 💛';btn.style.borderColor='#efa88e';return;}S.locked=true;btn.style.borderColor='#68c99a';$('message').textContent='Pedido anotado! ✨';sfx('good');setTimeout(renderPrepare,420);}));}
 const coords=[[33,33],[65,34],[47,52],[32,66],[67,66],[50,22],[51,77],[75,49]];
@@ -342,6 +366,7 @@ $('speak').onclick=speak;
 $('sound').onclick=()=>{S.sound=!S.sound;$('sound').textContent=S.sound?'🔊':'🔇';$('sound').title=S.sound?'Desativar falas e som':'Ativar falas e som';if(!S.sound)window.HannaVoice.cancel();};
 $('restart').onclick=()=>{show('<div class="big">🍪</div><h2 id="modalTitle">Recomeçar?</h2><p>Quer recomeçar esta missão?</p><button class="primary" id="yes">Sim, vamos lá!</button><p style="margin-top:17px"><button class="secondary" id="no">Continuar jogando</button></p>');$('yes').onclick=()=>{hide();start();};$('no').onclick=hide;};
 $('missionsMenu').onclick=missionMenu;
+$('voiceSettings').onclick=voiceSettings;
 start();
 show('<div class="big">👩‍🍳</div><h2 id="modalTitle">O restaurante da Hanna abriu!</h2><p>Agora os pedidos evoluem a cada missão. Comece com receitas simples, descubra novos ingredientes e atenda pedidos maiores sem sair deste restaurante!</p><div class="steps-guide"><span>👂 Ouça</span><span>📝 Anote</span><span>👆 Arraste</span><span>🍽️ Sirva!</span></div><button class="primary" id="play">Vamos cozinhar! ✨</button><div style="margin-top:15px"><button class="secondary" id="openMissionMenu">📋 Ver evolução dos pedidos</button></div>');$('play').onclick=()=>{hide();sfx('win');};$('openMissionMenu').onclick=missionMenu;
 })();
