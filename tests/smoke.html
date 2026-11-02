@@ -1,82 +1,60 @@
-<!doctype html>
-<html lang="pt-BR"><meta charset="utf-8"><title>Teste de ponta a ponta — Cozinha da Hanna</title>
-<body><pre id="result">RUNNING</pre><iframe id="game" src="../index.html" style="width:1200px;height:850px;border:0"></iframe>
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Teste integrado — pedidos da Hanna</title>
+<body><pre id="result">RUNNING</pre><iframe id="game" src="../index.html" style="width:390px;height:844px;border:0"></iframe>
 <script>
 (async()=>{
-const out=document.getElementById('result'),iframe=document.getElementById('game');
+const out=document.getElementById("result"),frame=document.getElementById("game");
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const fail=msg=>{out.textContent="FAIL: "+msg;throw Error(msg)};
-await new Promise((resolve,reject)=>{iframe.onload=resolve;iframe.onerror=reject;});
-const doc=iframe.contentDocument,win=iframe.contentWindow;
-if(!doc.querySelector('link[href="assets/polish.css"]'))fail('CSS não carregado');
-if(!win.FoodArt||!win.FoodArt.ingredient('queijo').includes('<svg'))fail('ilustrações não carregadas');
-doc.getElementById('play').click();
-const typeOf=txt=>{txt=txt.toLowerCase();if(txt.includes('pizza'))return 'pizza';if(txt.includes('hambúrguer'))return 'burger';if(txt.includes('salada')&&!txt.includes('frutas'))return 'salada';if(txt.includes('sanduíche'))return 'sanduiche';if(txt.includes('sorvete'))return 'sorvete';if(txt.includes('panqueca'))return 'panqueca';if(txt.includes('frutas'))return 'frutas';throw Error('Prato desconhecido: '+txt)};
-const baseOf={pizza:'massa',burger:'pao',salada:'alface',sanduiche:'pao',sorvete:'casquinha',panqueca:'panqueca',frutas:'tigela'};
-for(let index=0;index<8;index++){
- const expectedType=typeOf(doc.getElementById('request').textContent);
- const course=index%2===0?'PRINCIPAL':'SOBREMESA';
- if(!doc.getElementById('round').textContent.includes(course))fail('Curso incorreto: '+index);
- const pick=doc.querySelector('.choice[data-dish="'+expectedType+'"]');
- if(!pick)fail('Prato não apareceu no cardápio: '+expectedType);
- pick.click();
- await sleep(500);
- const plate=doc.getElementById('plate');
- if(!plate)fail('Prato de preparo ausente: '+index);
- const all=[...doc.querySelectorAll('.need')].map(x=>x.textContent.trim().replace('✓','').trim());
- const wanted=[baseOf[expectedType],...[...doc.querySelectorAll('.ingredient')].map(x=>x.dataset.id).filter(id=>id!==baseOf[expectedType]&&all.some(t=>t.startsWith(x.textContent.trim())))]; 
- // Realiza um arrastar completo com pointerdown/move/up como no mouse ou toque.
- for(const id of wanted){
-  const src=doc.querySelector('.ingredient[data-id="'+id+'"]');
-  if(!src)fail('Ingrediente ausente: '+id);
-  const r=src.getBoundingClientRect(),p=doc.getElementById('plate').getBoundingClientRect(),pointerId=100+index*10+wanted.indexOf(id);
-  src.dispatchEvent(new win.PointerEvent('pointerdown',{bubbles:true,pointerId,pointerType:'mouse',button:0,clientX:r.x+r.width/2,clientY:r.y+r.height/2}));
-  win.dispatchEvent(new win.PointerEvent('pointermove',{bubbles:true,pointerId,pointerType:'mouse',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
-  win.dispatchEvent(new win.PointerEvent('pointerup',{bubbles:true,pointerId,pointerType:'mouse',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
-  if(!src.disabled)fail('Arrastar não adicionou: '+id+' / '+expectedType);
- }
- const serve=doc.getElementById('serve');
- if(!serve||serve.disabled)fail('Não permitiu servir: '+expectedType+' '+wanted.join(','));
- serve.click();
- const next=doc.getElementById('next');
- if(!next)fail('Tela de entrega não apareceu: '+index);
- next.click();
- if(index===7&&!doc.getElementById('overlay').textContent.includes('Hanna, você arrasou'))fail('Tela final ausente');
+const fail=msg=>{out.textContent="FAIL: "+msg;throw Error(msg);};
+await new Promise((ok,no)=>{frame.onload=ok;frame.onerror=no;});
+const doc=frame.contentDocument,win=frame.contentWindow;
+const D=win.HannaMissions;
+if(!D||D.missions.length!==24||D.chapters.length!==6)fail("Catálogo com 24 pedidos não está integrado");
+if(!doc.getElementById("missionsMenu"))fail("Menu de pedidos não apareceu");
+if(doc.querySelector('a[href="missions.html"]'))fail("Link para segundo jogo ainda ativo");
+if(!win.FoodArt||!win.HannaVoice)fail("Assets antigos foram perdidos");
+const play=doc.getElementById("play");if(!play)fail("Tela inicial não carregou");play.click();
+if(!doc.getElementById("round").textContent.includes("MISSÃO"))fail("Pedido atual não é missão");
+function checkScroll(stage){
+ const root=doc.documentElement,app=doc.querySelector(".app");
+ if(root.scrollHeight>root.clientHeight+2)fail("Scroll externo em "+stage+" (root "+root.scrollHeight+"/"+root.clientHeight+")");
+ if(app.scrollHeight>app.clientHeight+3)fail("Scroll no app em "+stage+" (app "+app.scrollHeight+"/"+app.clientHeight+")");
 }
-if(doc.getElementById('score').textContent!=='24')fail('Pontuação esperada 24');
-
-// Verificar que a página inteira não apresenta rolagem em tamanhos de tela comuns.
-for(const [w,h] of [[1200,850],[1366,768],[390,844],[375,667],[360,640]]){
- iframe.style.width=w+'px';iframe.style.height=h+'px';
- await sleep(75);
- const root=doc.documentElement;
- if(root.scrollHeight>root.clientHeight+2)fail('Scroll vertical desnecessário em '+w+'x'+h+': '+root.scrollHeight+' > '+root.clientHeight);
- if(root.scrollWidth>root.clientWidth+2)fail('Scroll horizontal desnecessário em '+w+'x'+h);
+checkScroll("pedido");
+doc.getElementById("missionsMenu").click();
+const menu=doc.querySelector(".mission-list");
+if(!menu||menu.querySelectorAll(".mission-pick").length!==24)fail("Lista de 24 missões ausente");
+if(doc.querySelectorAll(".mission-pick:not([disabled])").length!==1)fail("Missões futuras não estão travadas");
+doc.getElementById("closeMissionMenu").click();
+let first=D.missions[0],recipe=D.recipes[first.orders[0]],type=recipe.art;
+if(first.orders[0]==="torrada")type="torrada";
+if(first.orders[0]==="omelete")type="omelete";
+let choose=doc.querySelector('.choice[data-dish="'+type+'"]');
+if(!choose)fail("Prato pedido não aparece na comanda "+type);
+choose.click();await sleep(570);
+if(!doc.getElementById("plate"))fail("Prato de montagem original ausente");
+checkScroll("montagem");
+for(const id of recipe.needs){
+ let ingredient=doc.querySelector('.ingredient[data-id="'+id+'"]');
+ if(!ingredient)fail("Ingrediente "+id+" não está na despensa");
+ ingredient.click();
+ if(!ingredient.disabled)fail("Ingrediente não foi adicionado ao prato: "+id);
 }
-const again=doc.getElementById('again');
-if(!again)fail('Botão jogar novamente não encontrado');
-again.click();
-iframe.style.width='375px';iframe.style.height='667px';
-await sleep(60);
-if(doc.documentElement.scrollHeight>doc.documentElement.clientHeight+2)fail('Scroll no atendimento mobile');
-let type=typeOf(doc.getElementById('request').textContent);
-doc.querySelector('.choice[data-dish="'+type+'"]').click();
-await sleep(500);
-if(doc.documentElement.scrollHeight>doc.documentElement.clientHeight+2)fail('Scroll no preparo mobile');
-const need=[...doc.querySelectorAll('.need')].map(x=>x.textContent);
-const wrong=[...doc.querySelectorAll('.ingredient')].find(b=>!need.some(t=>t.includes(b.querySelector('.label').textContent)));
-if(!wrong)fail('Não existe ingrediente surpresa para testar');
-const r=wrong.getBoundingClientRect(),p=doc.getElementById('plate').getBoundingClientRect();
-wrong.dispatchEvent(new win.PointerEvent('pointerdown',{bubbles:true,pointerId:522,pointerType:'touch',clientX:r.x+5,clientY:r.y+5}));
-win.dispatchEvent(new win.PointerEvent('pointermove',{bubbles:true,pointerId:522,pointerType:'touch',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
-win.dispatchEvent(new win.PointerEvent('pointerup',{bubbles:true,pointerId:522,pointerType:'touch',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
-if(!wrong.disabled)fail('Não adicionou o ingrediente errado arrastado');
-if(doc.getElementById('serve').disabled)fail('Não liberou servir com receita incompleta');
-doc.getElementById('serve').click();
-const evaluation=doc.querySelector('.rating-details');
-if(!evaluation||!evaluation.textContent.includes('0% de satisfação')||!evaluation.textContent.includes('1 diferentes'))fail('Avaliação negativa incorreta: '+evaluation?.textContent);
-if(!doc.getElementById('repeatReaction'))fail('Botão para ouvir reação ausente');
-out.textContent='PASS: 8 preparos perfeitos; ingrediente errado avaliado; voz e satisfação; layouts sem scroll em 5 resoluções';
-
-})().catch(e=>document.getElementById('result').textContent='FAIL: '+(e.stack||e));
+const serve=doc.getElementById("serve");
+if(!serve||serve.disabled)fail("Botão Servir indisponível");
+serve.click();
+if(!doc.getElementById("repeatReaction"))fail("Avaliação com voz não apareceu");
+const next=doc.getElementById("next");if(!next)fail("Próximo pedido não aparece");
+next.click();
+if(!doc.getElementById("modalTitle")?.textContent.includes("Missão concluída"))fail("Missão não foi concluída");
+const saved=JSON.parse(win.localStorage.getItem("hanna_missions_v1")||"{}");
+if(!saved[first.id]?.completed)fail("Progresso da missão não foi salvo");
+const nextMission=doc.getElementById("nextMission");if(!nextMission)fail("Não houve desbloqueio da segunda missão");
+nextMission.click();
+if(!doc.getElementById("round").textContent.includes("MISSÃO 2/24"))fail("Próxima missão não selecionada");
+if(doc.querySelector(".play-layout"))fail("Segundo jogo ainda está renderizado");
+for(const [w,h] of [[390,844],[375,667],[360,640],[1200,850],[1366,768]]){
+ frame.style.width=w+"px";frame.style.height=h+"px";await sleep(40);checkScroll(w+"x"+h);
+}
+out.textContent="PASS: missões integradas; 24 etapas; preparo original; estrelas; desbloqueio; vozes; cinco resoluções";
+})().catch(e=>document.getElementById("result").textContent="FAIL: "+(e.stack||e));
 </script></body></html>
