@@ -71,6 +71,10 @@ kit.speak("Hanna, seu pedido chegou.",kit.profile("Sofia",0),{enabled:true});
 assert.equal(uttered.at(-1).text,"Hâna, seu pedido chegou.");
 assert.equal(kit.setPronunciation("Ranna"),true);
 assert.equal(kit.setVoicePreference("female","generic"),true);
+// Preferência alterada não muda a voz já iniciada. Só nova rodada/cliente.
+kit.speak("Oi, Hanna",kit.profile("Sofia",0),{enabled:true});
+assert.equal(uttered.at(-1).voice.voiceURI,"f-natural","Cliente em atendimento não pode trocar de voz");
+kit.reset();
 kit.speak("Oi, Hanna",kit.profile("Sofia",0),{enabled:true});
 assert.equal(uttered.at(-1).voice.voiceURI,"generic","Escolha manual de voz deve prevalecer");
 assert.equal(kit.setVoicePreference("female",""),true);
@@ -81,5 +85,49 @@ assert.equal(kit.inspect().lastText,'');
 const tinyRoot={SpeechSynthesisUtterance:Utterance,speechSynthesis:{getVoices:()=>[],speak:u=>uttered.push(u),cancel:()=>{}}};
 vm.runInNewContext(fs.readFileSync('assets/voice-engine.js','utf8'),{window:tinyRoot});
 assert.equal(tinyRoot.HannaVoice.pickVoice(tinyRoot.HannaVoice.profile('Lili',0)),null);
-assert.equal(tinyRoot.HannaVoice.speak('Olá!',tinyRoot.HannaVoice.profile('Lili',0),{enabled:true}).spoken,true);
-console.log('PASS: vozes naturais pt-BR, preferência por gênero, 64 reações variadas, variação de pedidos e fallback.');
+let unavailable=false;
+const noVoice=tinyRoot.HannaVoice.speak('Olá!',tinyRoot.HannaVoice.profile('Lili',0),{enabled:true,onError:()=>{unavailable=true;}});
+assert.equal(noVoice.spoken,false,'Não usar voz automática sem seleção estável');
+assert.equal(noVoice.reason,'voice-unavailable');
+assert.equal(unavailable,true);
+
+// Reproduz o bug real: Chrome começa com getVoices() vazio e carrega
+// vozes depois, inclusive reordenando-as entre pedido e repetição.
+let changing=[];
+const scheduled=[],handlers={},dynamicSpeech=[];
+const delayedRoot={
+  SpeechSynthesisUtterance:Utterance,
+  setTimeout:(fn,ms)=>{scheduled.push(fn);return scheduled.length;},
+  clearTimeout:()=>{},
+  speechSynthesis:{
+    getVoices:()=>changing,
+    speak:u=>dynamicSpeech.push(u),
+    cancel:()=>{},
+    addEventListener:(event,fn)=>{handlers[event]=fn;}
+  }
+};
+vm.runInNewContext(fs.readFileSync('assets/voice-engine.js','utf8'),{window:delayedRoot});
+const delayed=delayedRoot.HannaVoice,male=delayed.profile('Theo',2);
+const first=delayed.speak('Oi Hanna, quero um pedido.',male,{enabled:true});
+assert.equal(first.reason,'voices-loading');
+assert.equal(dynamicSpeech.length,0,'Primeira fala não deve usar voz padrão provisória');
+assert.equal(delayed.inspect().waiting,true);
+changing=[available[1]];
+handlers.voiceschanged();
+assert.equal(dynamicSpeech.length,1);
+assert.equal(dynamicSpeech[0].voice.voiceURI,'m-natural');
+changing=[available[0],available[2],available[1]];
+delayed.speak('Pode repetir meu pedido?',male,{enabled:true});
+assert.equal(dynamicSpeech.at(-1).voice.voiceURI,'m-natural','Clique em ouvir de novo deve manter o homem');
+changing=[available[0],available[2]]; // voz antes usada desaparece da lista
+delayed.speak('Obrigado Chefe Hanna!',male,{enabled:true});
+assert.equal(dynamicSpeech.at(-1).voice.voiceURI,'m-natural','Avaliação deve manter a mesma identidade');
+assert.equal(delayed.inspect().assigned.length,1);
+delayed.reset();
+assert.equal(delayed.inspect().assigned.length,0);
+// Se só houver voz explicitamente feminina, não inventar um homem.
+const unavailableMale=delayed.speak('Olá!',male,{enabled:true});
+assert.equal(unavailableMale.spoken,false);
+assert.equal(unavailableMale.reason,'voices-loading');
+
+console.log('PASS: vozes naturais pt-BR, pronúncia, mesma voz no pedido/repetição/avaliação, lista assíncrona e preferência congelada.');
