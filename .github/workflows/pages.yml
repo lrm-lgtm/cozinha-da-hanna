@@ -31,6 +31,9 @@ jobs:
           new vm.Script(source, {filename: 'cozinha-da-hanna.js'});
           const sprites = fs.readFileSync('assets/food-art.js', 'utf8');
           new vm.Script(sprites, {filename: 'food-art.js'});
+          const voices = fs.readFileSync('assets/voice-engine.js', 'utf8');
+          new vm.Script(voices, {filename:'voice-engine.js'});
+          if (!html.includes('assets/voice-engine.js')) throw new Error('Motor de voz nao integrado');
           if (!fs.existsSync('assets/polish.css')) throw new Error('Estilos faltando');
           for (const id of ['pizza','sorvete','frutas','panqueca','burger']) {
             if (!sprites.includes(id + ':')) throw new Error('Arte não encontrada: ' + id);
@@ -41,6 +44,8 @@ jobs:
           }
           console.log('Sintaxe e estrutura do jogo verificadas.');
           NODE
+      - name: Validar vozes e variações de frases
+        run: node tests/voice-test.js
       - name: Testar pedidos, arrasto e sobremesas no Chrome
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/cozinha-http.log 2>&1 &
