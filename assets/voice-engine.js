@@ -6,7 +6,7 @@
 "use strict";
 const natural=/natural|neural|online|premium|enhanced|aria|multilingual|google português|microsoft/i;
 const female=/francisca|luciana|maria|helena|camila|raquel|vitoria|vitória|isabela|female|feminina|mulher/i;
-const male=/antonio|antônio|daniel|ricardo|paulo|felipe|marcos|male|masculino|homem/i;
+const male=/antonio|antônio|daniel|ricardo|paulo|felipe|marcos|\bmale\b|masculino|homem/i;
 const men=new Set(["Theo","Davi","Pedro"]);
 const personalities={
   Nina:{style:"gentil",rate:.97,pitch:1.04},
@@ -71,7 +71,7 @@ const bank={
       "Gostei, chef Hanna! Só faltou um pequeno detalhe do meu pedido.",
       "Ficou bom, Hanna! Da próxima vez, capricha na comanda.",
       "Tá gostoso, chefe Hanna! Eu só trocaria um ingrediente.",
-      "Obrigada pelo carinho, Hanna! Ficou quase como eu pedi.",
+      "Valeu pelo carinho, Hanna! Ficou quase como eu pedi.",
       "Humm, que cheirinho bom! Só ficou um pouquinho diferente, chef."
     ]
   },
@@ -126,8 +126,9 @@ function profile(name,index=0){
 }
 function cleanRequest(s){return String(s||"").replace(/\s+/g," ").trim();}
 function request(original,course,name){
- const base=cleanRequest(original);
+ let base=cleanRequest(original);
  const mode=course==="dessert"?"dessert":"main";
+ if(mode==="dessert"&&/^Para sobremesa,\s*/i.test(base))base=base.replace(/^Para sobremesa,\s*/i,"").replace(/^./,ch=>ch.toUpperCase());
  const sentence=sample(opening[mode],mode);
  const lower=sentence.includes("terminar, {pedido}")?base.charAt(0).toLowerCase()+base.slice(1):base;
  return sentence.replace("{pedido}",lower);
