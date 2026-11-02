@@ -59,6 +59,23 @@ for(const level of ['excellent','good','okay','low']){
   assert.ok(lines.size>=4,'Pouca variação: '+level+' '+elapsed);
  }
 }
+
+assert.equal(kit.pronunciation("Oi, Hanna. Tudo bem, Chefe Hanna?"),"Oi, Ranna. Tudo bem, Chefe Ranna?");
+assert.equal(kit.pronunciation("Não é Hannah, nem banana!"),"Não é Hannah, nem banana!");
+let sample=kit.speak("Parabéns, Chefe Hanna! Seu restaurante está lindo.",kit.profile("Sofia",0),{enabled:true});
+assert.ok(sample.spoken);
+assert.equal(uttered.at(-1).text,"Parabéns, Chefe Ranna! Seu restaurante está lindo.");
+assert.equal(kit.inspect().lastText,"Parabéns, Chefe Hanna! Seu restaurante está lindo.","Texto visível preservado");
+assert.equal(kit.setPronunciation("Hâna"),true);
+kit.speak("Hanna, seu pedido chegou.",kit.profile("Sofia",0),{enabled:true});
+assert.equal(uttered.at(-1).text,"Hâna, seu pedido chegou.");
+assert.equal(kit.setPronunciation("Ranna"),true);
+assert.equal(kit.setVoicePreference("female","generic"),true);
+kit.speak("Oi, Hanna",kit.profile("Sofia",0),{enabled:true});
+assert.equal(uttered.at(-1).voice.voiceURI,"generic","Escolha manual de voz deve prevalecer");
+assert.equal(kit.setVoicePreference("female",""),true);
+assert.ok(kit.availableVoices().length>=3);
+assert.ok(kit.aliases.includes("Ranna")&&kit.aliases.includes("Hanna"));
 kit.reset();
 assert.equal(kit.inspect().lastText,'');
 const tinyRoot={SpeechSynthesisUtterance:Utterance,speechSynthesis:{getVoices:()=>[],speak:u=>uttered.push(u),cancel:()=>{}}};
