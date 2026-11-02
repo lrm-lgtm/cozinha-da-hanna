@@ -29,6 +29,13 @@ jobs:
           const source = html.split('<script>')[1]?.split('</script>')[0];
           if (!source) throw new Error('JavaScript do jogo ausente');
           new vm.Script(source, {filename: 'cozinha-da-hanna.js'});
+          const sprites = fs.readFileSync('assets/food-art.js', 'utf8');
+          new vm.Script(sprites, {filename: 'food-art.js'});
+          if (!fs.existsSync('assets/polish.css')) throw new Error('Estilos faltando');
+          for (const id of ['pizza','sorvete','frutas','panqueca','burger']) {
+            if (!sprites.includes(id + ':')) throw new Error('Arte não encontrada: ' + id);
+          }
+          if (!source.includes("S.course='dessert'")) throw new Error('Etapa de sobremesa ausente');
           for (const name of ['startDrag','moveDrag','releaseDrag','plateHTML','renderPrepare']) {
             if (!source.includes(name)) throw new Error('Mecânica obrigatória ausente: ' + name);
           }
