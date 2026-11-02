@@ -1,44 +1,35 @@
 # 🍕 Cozinha da Hanna — Restaurante Divertido
 
-## 🗺️ Novo modo Missões
-
-**Jogar 24 missões:** https://lrm-lgtm.github.io/cozinha-da-hanna/missions.html
-
-- Seis capítulos de quatro missões: Café da Manhã, Pizzaria, Lanchonete, Doceria, Restaurante Cheio e A Grande Festa.
-- Cozinha 2D redesenhada, com estações ilustradas, retratos variados e sprites vetoriais originais. Não usa imagens externas de terceiros.
-- Quatro etapas de preparo: **gesto sobre a bancada → montar ingredientes → assar/grelhar quando necessário → servir**.
-- A partir do quinto capítulo, há missões com dois ou três pratos.
-- Pontuação por acerto, erro e tempo, progresso local salvo, missões desbloqueadas uma a uma e possibilidade de repetir.
-- Layout responsivo sem rolagem geral durante a cozinha; a despensa e o mapa de missões podem usar rolagem interna.
-- Código: `missions.html`, `assets/missions-data.js`, `assets/mission-art.js`, `assets/missions-game.js`, `assets/missions.css`.
-- Teste funcional: `tests/missions-smoke.html`.
-
-O restaurante original continua disponível em https://lrm-lgtm.github.io/cozinha-da-hanna/.
-
----
-
-
-Jogo de cozinha 2D, gratuito, no navegador. Atenda **quatro clientes**, prepare um **prato principal** e depois uma **sobremesa** para cada um; arraste os ingredientes e descubra a reação de cada cliente.
-
 **Jogar:** https://lrm-lgtm.github.io/cozinha-da-hanna/
+
+## Missões dentro do restaurante
+
+As **24 missões em 6 capítulos** fazem parte do mesmo jogo, na mesma tela de atendimento, montagem de pratos e avaliação. A Hanna não precisa abrir outro modo, nem aprender outra interface.
+
+- **Café da Manhã** → pedidos mais simples: torrada, omelete, panquecas e frutas.
+- **Pizzaria** → pizzas com recheios diferentes e pedidos mais detalhados.
+- **Lanchonete** → hambúrgueres e sanduíches com combinações maiores.
+- **Doceria** → sorvetes e sobremesas variadas.
+- **Restaurante Cheio** → dois pedidos em sequência.
+- **A Grande Festa** → desafios com dois ou três pedidos.
+
+A complexidade aumenta gradualmente com receitas, ingredientes e quantidades de pedidos, **sem trocar o cenário original ou adicionar minijogos desconectados**. O botão **📋** permite consultar missões e repetir as concluídas. As seguintes são liberadas uma a uma; progresso e recorde de estrelas ficam salvos localmente (`hanna_missions_v1`).
+
+O endereço antigo `/missions.html` apenas **redireciona para o restaurante**, para não quebrar links compartilhados.
 
 ## Como funciona
 
-- Anote o pedido, escolhendo o prato indicado pelo cliente.
-- Arraste ingredientes até o prato. É permitido colocar ingredientes diferentes ou servir incompleto.
-- A satisfação de 0 a 100% e de 0 a 3 estrelas considera acertos, faltas e ingredientes extras.
-- O comentário do cliente varia de acordo com a satisfação e o tempo decorrido, **sem cronômetro de pressão**.
-- Cada rodada apresenta **dois clientes com perfis de voz femininos e dois masculinos**, e cada personagem preserva sua personalidade vocal ao pedir e avaliar.
-- Vozes preferem português brasileiro e, quando disponíveis, opções de maior qualidade do próprio aparelho. A qualidade efetiva varia por navegador/sistema. Não há serviço externo de voz ou áudio neural embutido nesta versão.
+A criança escuta o pedido, seleciona o prato, arrasta os ingredientes e serve. Ingredientes extras ou ausentes influenciam a satisfação do cliente e suas frases em português. Cada rodada preserva sua voz quando possível, conforme a oferta de vozes do navegador.
 
-## Estrutura técnica
+## Estrutura
 
-- `index.html` — jogo e regras.
-- `assets/food-art.js` — desenhos vetoriais.
-- `assets/polish.css` — estilos responsivos sem rolagem geral.
-- `assets/voice-engine.js` — banco de falas, escolha de vozes e fallback Web Speech.
-- `tests/voice-test.js` — testes de variações, vozes e fallback sem vozes disponíveis.
-- `tests/smoke.html` — teste funcional de pedidos, arrasto, avaliação e responsividade.
-- `.github/workflows/pages.yml` — validações automáticas e publicação pelo GitHub Pages.
+- `index.html`: jogo único, inclusive missões integradas.
+- `assets/missions-data.js`: catálogo de 24 missões e regras de desbloqueio.
+- `assets/food-art.js`: artes do restaurante.
+- `assets/polish.css`: layout e lista de missões dentro da mesma interface.
+- `assets/voice-engine.js`: diálogos e seleção de vozes.
+- `missions.html`: redirecionamento de compatibilidade.
+- `tests/smoke.html`: verificação de pedidos, progresso, estrelas e responsividade.
+- `tests/missions-smoke.html`: verifica que o link legado não abre um segundo jogo.
 
-Não exige login, não tem anúncios e não envia dados de jogo para servidores. O melhor resultado fica apenas no armazenamento local do navegador.
+A publicação é feita por GitHub Pages a cada atualização verificada pela GitHub Actions. Não há login, publicidade nem envio dos dados do jogo para terceiros.
