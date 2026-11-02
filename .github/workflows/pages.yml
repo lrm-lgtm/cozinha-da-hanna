@@ -47,9 +47,9 @@ jobs:
           CHROME=$(command -v google-chrome || command -v chromium || true)
           if [ -z "$CHROME" ]; then echo "Chrome não encontrado"; exit 1; fi
           timeout 70s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=20000 --dump-dom http://127.0.0.1:8765/tests/smoke.html > /tmp/cozinha-smoke-result.html 2>/tmp/cozinha-chrome.log
-          if ! grep -q "PASS: 8 preparos arrastados" /tmp/cozinha-smoke-result.html; then
+          if ! grep -q "PASS: 8 preparos perfeitos" /tmp/cozinha-smoke-result.html; then
             echo "Teste do jogo falhou:"
-            grep -o '<pre id="result">[^<]*' /tmp/cozinha-smoke-result.html || true
+            sed -n '/<pre id="result">/,/<\\/pre>/p' /tmp/cozinha-smoke-result.html | head -n 18 || true
             tail -n 12 /tmp/cozinha-chrome.log || true
             exit 1
           fi
