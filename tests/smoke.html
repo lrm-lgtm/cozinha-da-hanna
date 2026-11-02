@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><title>Teste de ponta a ponta — Cozinha da Hanna</title>
+<body><pre id="result">RUNNING</pre><iframe id="game" src="../index.html" style="width:1200px;height:850px;border:0"></iframe>
+<script>
+(async()=>{
+const out=document.getElementById('result'),iframe=document.getElementById('game');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const fail=msg=>{out.textContent="FAIL: "+msg;throw Error(msg)};
+await new Promise((resolve,reject)=>{iframe.onload=resolve;iframe.onerror=reject;});
+const doc=iframe.contentDocument,win=iframe.contentWindow;
+if(!doc.querySelector('link[href="assets/polish.css"]'))fail('CSS não carregado');
+if(!win.FoodArt||!win.FoodArt.ingredient('queijo').includes('<svg'))fail('ilustrações não carregadas');
+doc.getElementById('play').click();
+const typeOf=txt=>{txt=txt.toLowerCase();if(txt.includes('pizza'))return 'pizza';if(txt.includes('hambúrguer'))return 'burger';if(txt.includes('salada')&&!txt.includes('frutas'))return 'salada';if(txt.includes('sanduíche'))return 'sanduiche';if(txt.includes('sorvete'))return 'sorvete';if(txt.includes('panqueca'))return 'panqueca';if(txt.includes('frutas'))return 'frutas';throw Error('Prato desconhecido: '+txt)};
+const baseOf={pizza:'massa',burger:'pao',salada:'alface',sanduiche:'pao',sorvete:'casquinha',panqueca:'panqueca',frutas:'tigela'};
+for(let index=0;index<8;index++){
+ const expectedType=typeOf(doc.getElementById('request').textContent);
+ const course=index%2===0?'PRINCIPAL':'SOBREMESA';
+ if(!doc.getElementById('round').textContent.includes(course))fail('Curso incorreto: '+index);
+ const pick=doc.querySelector('.choice[data-dish="'+expectedType+'"]');
+ if(!pick)fail('Prato não apareceu no cardápio: '+expectedType);
+ pick.click();
+ await sleep(500);
+ const plate=doc.getElementById('plate');
+ if(!plate)fail('Prato de preparo ausente: '+index);
+ const all=[...doc.querySelectorAll('.need')].map(x=>x.textContent.trim().replace('✓','').trim());
+ const wanted=[baseOf[expectedType],...[...doc.querySelectorAll('.ingredient')].map(x=>x.dataset.id).filter(id=>id!==baseOf[expectedType]&&all.some(t=>t.startsWith(x.textContent.trim())))]; 
+ // Realiza um arrastar completo com pointerdown/move/up como no mouse ou toque.
+ for(const id of wanted){
+  const src=doc.querySelector('.ingredient[data-id="'+id+'"]');
+  if(!src)fail('Ingrediente ausente: '+id);
+  const r=src.getBoundingClientRect(),p=plate.getBoundingClientRect(),pointerId=100+index*10+wanted.indexOf(id);
+  src.dispatchEvent(new win.PointerEvent('pointerdown',{bubbles:true,pointerId,pointerType:'mouse',button:0,clientX:r.x+r.width/2,clientY:r.y+r.height/2}));
+  win.dispatchEvent(new win.PointerEvent('pointermove',{bubbles:true,pointerId,pointerType:'mouse',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
+  win.dispatchEvent(new win.PointerEvent('pointerup',{bubbles:true,pointerId,pointerType:'mouse',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
+  if(!src.disabled)fail('Arrastar não adicionou: '+id+' / '+expectedType);
+ }
+ const serve=doc.getElementById('serve');
+ if(!serve||serve.disabled)fail('Não permitiu servir: '+expectedType+' '+wanted.join(','));
+ serve.click();
+ const next=doc.getElementById('next');
+ if(!next)fail('Tela de entrega não apareceu: '+index);
+ next.click();
+ if(index===7&&!doc.getElementById('overlay').textContent.includes('Hanna, você arrasou'))fail('Tela final ausente');
+}
+if(doc.getElementById('score').textContent!=='24')fail('Pontuação esperada 24');
+out.textContent='PASS: 8 preparos arrastados, 4 pratos principais, 4 sobremesas, 24 estrelas';
+})().catch(e=>document.getElementById('result').textContent='FAIL: '+(e.stack||e));
+</script></body></html>
