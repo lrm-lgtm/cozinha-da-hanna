@@ -29,7 +29,7 @@ for(let index=0;index<8;index++){
  for(const id of wanted){
   const src=doc.querySelector('.ingredient[data-id="'+id+'"]');
   if(!src)fail('Ingrediente ausente: '+id);
-  const r=src.getBoundingClientRect(),p=plate.getBoundingClientRect(),pointerId=100+index*10+wanted.indexOf(id);
+  const r=src.getBoundingClientRect(),p=doc.getElementById('plate').getBoundingClientRect(),pointerId=100+index*10+wanted.indexOf(id);
   src.dispatchEvent(new win.PointerEvent('pointerdown',{bubbles:true,pointerId,pointerType:'mouse',button:0,clientX:r.x+r.width/2,clientY:r.y+r.height/2}));
   win.dispatchEvent(new win.PointerEvent('pointermove',{bubbles:true,pointerId,pointerType:'mouse',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
   win.dispatchEvent(new win.PointerEvent('pointerup',{bubbles:true,pointerId,pointerType:'mouse',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
