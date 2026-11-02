@@ -38,17 +38,15 @@ jobs:
           for (const id of ['pizza','sorvete','frutas','panqueca','burger']) {
             if (!sprites.includes(id + ':')) throw new Error('Arte não encontrada: ' + id);
           }
-          if (!source.includes("S.course='dessert'")) throw new Error('Etapa de sobremesa ausente');
+          if (!html.includes('assets/missions-data.js')) throw new Error('Missões não integradas ao restaurante');
           for (const name of ['startDrag','moveDrag','releaseDrag','plateHTML','renderPrepare']) {
             if (!source.includes(name)) throw new Error('Mecânica obrigatória ausente: ' + name);
           }
-          for(const asset of ['assets/missions-data.js','assets/mission-art.js','assets/missions-game.js']) {
-            new vm.Script(fs.readFileSync(asset,'utf8'), {filename:asset});
-          }
+          new vm.Script(fs.readFileSync('assets/missions-data.js','utf8'), {filename:'missions-data.js'});
           const missionHtml = fs.readFileSync('missions.html','utf8');
-          if (!missionHtml.includes('assets/missions-game.js')) throw new Error('Missões não integradas');
-          if (!fs.existsSync('assets/missions.css')) throw new Error('Estilos das missões ausentes');
-          console.log('Motor de missões e assets validados.');
+          if (!missionHtml.includes('location.replace("./index.html"')) throw new Error('Página antiga de missões deve redirecionar');
+          if (!source.includes('function missionMenu()') || !source.includes('function missionOrder(')) throw new Error('Progressão ausente do jogo original');
+          console.log('Missões integradas ao jogo original, sem segundo jogo.');
           console.log('Sintaxe e estrutura do jogo verificadas.');
           NODE
       - name: Validar vozes e variações de frases
@@ -59,13 +57,13 @@ jobs:
           CHROME=$(command -v google-chrome || command -v chromium || true)
           if [ -z "$CHROME" ]; then echo "Chrome não encontrado"; exit 1; fi
           timeout 70s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=20000 --dump-dom http://127.0.0.1:8765/tests/smoke.html > /tmp/cozinha-smoke-result.html 2>/tmp/cozinha-chrome.log
-          if ! grep -q "PASS: 8 preparos perfeitos" /tmp/cozinha-smoke-result.html; then
+          if ! grep -q "PASS: missões integradas" /tmp/cozinha-smoke-result.html; then
             echo "Teste do jogo falhou:"
             sed -n '/<pre id="result">/,/<\\/pre>/p' /tmp/cozinha-smoke-result.html | head -n 18 || true
             tail -n 12 /tmp/cozinha-chrome.log || true
             exit 1
           fi
-          echo "Oito pratos montados com sucesso em navegador real."
+          echo "Pedidos e progressão integrados aprovados no navegador."
 
       - name: Testar capítulos, gestos e progressão em Chrome
         run: |
@@ -73,13 +71,13 @@ jobs:
           CHROME=$(command -v google-chrome || command -v chromium || true)
           if [ -z "$CHROME" ]; then echo "Chrome indisponivel"; exit 1; fi
           timeout 70s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=18000 --dump-dom http://127.0.0.1:8877/tests/missions-smoke.html > /tmp/missions-result.html 2>/tmp/missions-chrome.log
-          if ! grep -q "PASS: 24 missões" /tmp/missions-result.html; then
+          if ! grep -q "PASS: sem segundo jogo" /tmp/missions-result.html; then
             echo "Falhou a validacao das missoes:"
             sed -n '/<pre id="result">/,/<\/pre>/p' /tmp/missions-result.html | head -n 25 || true
             tail -n 10 /tmp/missions-chrome.log || true
             exit 1
           fi
-          echo "24 missões declaradas; interação e progressão aprovadas."
+          echo "Link antigo redireciona para o restaurante original."
 
   deploy:
     needs: verificar
