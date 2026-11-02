@@ -107,6 +107,37 @@ const bank={
     ]
   }
 };
+
+const OPTIONS_KEY="hanna_voice_prefs_v2";
+const aliases=["Ranna","Hanna","Hâna","Râna"];
+let options={pronunciation:"Ranna",female:"",male:""};
+try{
+ const saved=JSON.parse(root.localStorage?.getItem(OPTIONS_KEY)||"null");
+ if(saved&&typeof saved==="object"){
+  if(aliases.includes(saved.pronunciation))options.pronunciation=saved.pronunciation;
+  if(typeof saved.female==="string")options.female=saved.female;
+  if(typeof saved.male==="string")options.male=saved.male;
+ }
+}catch(e){}
+function savePreferences(){try{root.localStorage?.setItem(OPTIONS_KEY,JSON.stringify(options));}catch(e){}}
+function setPronunciation(value){
+ if(!aliases.includes(value))return false;
+ options.pronunciation=value;savePreferences();return true;
+}
+function pronunciation(text){
+ // O texto na tela e nos dados do jogo permanece sempre Hanna.
+ // Somente a fala recebe a grafia fonética escolhida.
+ return String(text).replace(/\bHanna\b/gi,options.pronunciation);
+}
+function setVoicePreference(gender,uri){
+ if(!["male","female"].includes(gender)||typeof uri!=="string")return false;
+ options[gender]=uri;
+ assignedVoices.clear();
+ savePreferences();return true;
+}
+function getPreferences(){return {...options};}
+function availableVoices(){return voices().map(v=>({name:v.name,lang:v.lang,voiceURI:v.voiceURI,localService:v.localService}));}
+
 const used=new Set();
 const assignedVoices=new Map();
 let lastText="";
@@ -154,6 +185,8 @@ function voices(){
 function pickVoice(p){
  const pool=voices();if(!pool.length)return null;
  const id=p.name;
+ const preferred=pool.find(v=>v.voiceURI===options[p.gender]);
+ if(preferred)return preferred;
  const previous=assignedVoices.get(id);
  if(previous){const found=pool.find(v=>v.voiceURI===previous);if(found)return found;}
  const sorted=pool.slice().sort((a,b)=>voiceScore(b,p)-voiceScore(a,p));
@@ -171,7 +204,7 @@ function speak(text,p,opts={}){
  if(!root.speechSynthesis||!root.SpeechSynthesisUtterance)return {spoken:false,reason:"unsupported"};
  try{
    cancel();
-   const u=new root.SpeechSynthesisUtterance(cleanRequest(text));
+   const u=new root.SpeechSynthesisUtterance(pronunciation(cleanRequest(text)));
    u.lang="pt-BR";
    const selected=pickVoice(p);
    if(selected)u.voice=selected;
@@ -187,5 +220,5 @@ function speak(text,p,opts={}){
 }
 function reset(){used.clear();assignedVoices.clear();lastText="";lastVoiceName="";}
 function inspect(){return {available:voices().map(v=>({name:v.name,lang:v.lang,local:v.localService})),lastVoiceName,lastText};}
-root.HannaVoice={profile,request,feedback,pickVoice,speak,cancel,reset,inspect,bank};
+root.HannaVoice={profile,request,feedback,pickVoice,speak,cancel,reset,inspect,bank,pronunciation,setPronunciation,setVoicePreference,getPreferences,availableVoices,aliases};
 })(window);
