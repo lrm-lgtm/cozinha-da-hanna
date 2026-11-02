@@ -37,3 +37,123 @@ h1{font-size:clamp(26px,3.3vw,39px)}.progress{background:#fcf9f2}
 @media(max-width:1050px){.ingredient{min-height:95px}.ingredient .emoji{height:51px}.ingredient .food-art{width:48px;height:48px}}
 @media(max-width:750px){.avatar{width:65px;min-height:64px;height:67px}.person-art{max-width:63px;max-height:67px}.ingredient{min-height:74px}.ingredient .emoji{height:42px}.ingredient .food-art{width:40px;height:40px}.choice .emoji{height:84px}.choice .food-art{height:82px;width:82px}.plate-art .food-art{max-height:160px}.topping.vector{width:31%;height:31%}.drag-proxy{width:65px;height:65px}.drag-proxy .food-art{width:53px;height:53px}}
 @media(max-width:365px){.ingredient{min-height:65px}.ingredient .food-art{height:32px;width:32px}}
+
+/* v3: página sem rolagem externa; painéis se ajustam à altura da tela */
+html,body{height:100%;max-height:100dvh;overflow:hidden;overscroll-behavior:none}
+.app{height:100dvh;min-height:0;overflow:hidden;padding:9px 12px;gap:8px}
+header,.progress,.footer{flex-shrink:0}
+header .brand-icon{width:48px;height:48px}
+.score,.iconbtn{height:40px}
+.game-layout{flex:1;min-height:0;grid-template-rows:minmax(0,1fr)}
+.panel{min-height:0}
+.guest,.stage{min-height:0;height:100%;overflow:hidden}
+.guest{gap:8px;padding:12px}
+.avatar{flex:1 1 0;min-height:0}
+.stage #stageContent{height:100%;display:flex;flex-direction:column;min-height:0}
+.stagehead{flex:0 0 auto;padding:13px 8px 7px}
+.stagehead h2{font-size:clamp(23px,2.5vw,33px);margin:5px 0 2px}
+.stagebody{min-height:0;flex:1 1 0;padding:7px 12px;gap:6px;overflow:hidden}
+.plate-zone{min-height:0;height:100%;gap:5px}
+.plate{width:min(275px,34dvh,88%);flex:0 0 auto}
+.plate-label{flex:0 0 auto}
+.message{flex:0 0 auto;min-height:18px}
+.pan{height:100%;overflow:hidden;display:flex;flex-direction:column}
+.panhead{flex:0 0 auto;padding:12px 12px 9px}
+.panhead h3{font-size:21px}
+.pantryinner{min-height:0;flex:1;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;padding:8px 10px}
+.pantrycards{gap:6px}
+.ingredient{min-height:clamp(55px,9.4dvh,82px);gap:0}
+.ingredient .emoji{height:43px}
+.ingredient .food-art{width:42px;height:42px}
+.ingredient .label{font-size:11px}
+.receipt{margin-top:9px;padding:8px}
+.receipt h3{font-size:17px;margin:5px 0}
+.need{font-size:10px;padding:3px}
+.need i,.need i .food-art{width:21px;height:21px}
+.recipe-progress{font-size:10px;color:#6b8574;margin-top:6px}
+.footer{min-height:55px;padding:7px 10px}
+.reaction-text{font-size:17px!important;color:#344d42!important;font-weight:900}
+.rating-meter{width:min(340px,90%);height:13px;background:#e9e8e0;border-radius:15px;overflow:hidden;margin:10px auto}
+.rating-meter span{display:block;height:100%;background:linear-gradient(90deg,#d0a15a,#60a87f);border-radius:15px}
+.rating-details{font-size:12px!important;margin:8px auto 15px!important}
+@media(min-width:751px) and (max-height:690px){
+  .guest{padding:8px}.avatar{max-height:145px}
+  .speech{padding:10px}
+  .stagehead{padding:8px 5px 2px}.stagehead h2{font-size:24px}
+  .plate{width:min(240px,32dvh,85%)}
+  .panhead{padding:7px 10px}.panhead h3{font-size:18px}
+  .ingredient{min-height:clamp(48px,8.2dvh,64px)}
+  .ingredient .emoji{height:33px}.ingredient .food-art{height:34px;width:34px}
+  .receipt{padding:5px}.receipt h3{font-size:15px}
+  .need{font-size:9px;padding:2px}
+}
+@media(max-width:750px){
+  .app{height:100dvh;min-height:0;overflow:hidden;padding:5px 6px calc(5px + env(safe-area-inset-bottom));gap:5px}
+  .brand-icon{width:38px!important;height:38px!important;font-size:17px}
+  .brand{gap:5px}.brand h1{font-size:21px}
+  header{gap:5px;min-height:39px}
+  .score,.iconbtn{height:33px}.iconbtn{width:32px;font-size:17px}
+  .progress{min-height:34px;padding:4px 7px}
+  .game-layout{flex:1;min-height:0;grid-template-rows:auto minmax(0,1fr);gap:5px}
+  .guest{height:auto;min-height:0;padding:5px 7px;gap:5px}
+  .guest .speech{padding:5px}
+  .guest .speech p{font-size:11px}
+  .guest .avatar{width:52px;height:55px;min-height:55px;max-height:55px;flex:0 0 52px}
+  .person-art{width:52px;height:55px}
+  .guest .speak{height:30px}
+  .stage{position:relative;top:auto;min-height:0;height:100%;border-radius:15px}
+  .stage #stageContent{height:100%}
+  .stagehead{padding:8px 4px 4px}
+  .stagehead h2{font-size:clamp(17px,4.5vw,23px);margin:3px 0 1px}
+  .stagehead p{font-size:9px}
+  .stagebody{padding:4px;gap:3px}
+  .plate-zone{height:100%;min-height:0;gap:3px;justify-content:center}
+  .plate{width:min(174px,27dvh,96%);max-height:180px}
+  .plate-label{font-size:8px;padding:4px 6px}
+  .message{font-size:10px}
+  .pan{min-height:0;height:100%;overflow:hidden;border-radius:15px}
+  .panhead{padding:6px}.panhead h3{font-size:17px}.panhead small,.panhead p{font-size:9px}
+  .pantryinner{padding:4px 5px;overflow:auto}
+  .pantrycards{gap:4px}
+  .ingredient{min-height:clamp(45px,7.6dvh,58px);padding:3px 1px;gap:0}
+  .ingredient .emoji{height:28px}
+  .ingredient .food-art{width:29px;height:29px}
+  .ingredient .label{font-size:9px}
+  .receipt{margin-top:6px;padding:5px;border-radius:10px}
+  .receipt h3{font-size:13px;line-height:1.05;margin:4px 0}
+  .receipt-top{font-size:8px}
+  .need-list{gap:2px}
+  .need{font-size:8px;padding:2px;gap:1px}
+  .need i,.need i .food-art{height:16px;width:16px;flex-basis:16px}
+  .recipe-progress{font-size:9px;line-height:1.1;margin-top:4px}
+  .footer{position:relative;bottom:auto;left:auto;right:auto;z-index:40;min-height:46px;border-radius:13px;padding:5px 7px;box-shadow:0 2px 8px #273b2c17}
+  .footer .tip{font-size:9px;line-height:1.15}
+  .footer .primary{min-height:37px;padding:4px 10px;font-size:16px}
+  .footer .secondary{min-height:34px;padding:5px 7px;font-size:9px}
+  .plate-art .food-art{max-height:145px}
+  .choice{min-height:clamp(115px,21dvh,160px)}
+  .choice .emoji{height:65px}
+  .choice .food-art{width:64px;height:64px}
+  body.mode-order .game-layout{grid-template-rows:auto minmax(0,1fr)}
+  body.mode-order .stage{min-height:0}
+  body.mode-order .stagebody{padding:6px}
+  .order-help{padding:10px}
+}
+@media(max-width:750px) and (max-height:600px){
+  .guest .avatar,.person-art{height:42px;min-height:42px;max-height:42px}
+  .guest .speech p{font-size:10px}
+  .panhead{padding:4px 6px}
+  .ingredient{min-height:43px}
+  .ingredient .emoji{height:24px}
+  .ingredient .food-art{height:25px;width:25px}
+  .plate{width:min(145px,23dvh,95%)}
+  .stagehead{padding:5px 3px 2px}
+  .stagehead h2{font-size:17px}
+}
+@media(max-height:460px) and (min-width:751px){
+  header .brand-icon{height:36px;width:36px}
+  .progress{min-height:32px}
+  .stagehead{padding:3px}.stagehead h2{font-size:20px}
+  .plate{width:min(175px,32dvh,85%)}
+  .ingredient{min-height:43px}.ingredient .emoji{height:25px}.ingredient .food-art{width:24px;height:24px}
+}
