@@ -1,0 +1,39 @@
+
+/* Cozinha da Hanna — skin de jogo de culinária com ilustrações vetoriais. */
+:root{--mint:#e6f1df;--green:#326c55;--dark:#263c36;--cream:#fbf6ee;--edge:#ded2be;--coral:#c98168;--yellow:#dba85e}
+body{background:radial-gradient(circle at 9% 7%,#dce9d9,transparent 30%),radial-gradient(circle at 97% 96%,#e9ded0,transparent 30%),#f3efe6;color:#40534a}
+.panel{border-radius:20px;box-shadow:0 10px 28px #44554a13,0 2px 6px #74594013}
+.brand-icon{background:#2d6550;border-color:#2d6550;color:#f6eedc;box-shadow:0 4px 0 #9ca99b;font-family:'Baloo 2',sans-serif;font-weight:800;letter-spacing:-2px;font-size:22px;transform:rotate(-4deg)}
+h1{font-size:clamp(26px,3.3vw,39px)}.progress{background:#fcf9f2}
+.guest{background:linear-gradient(#faf7ef 0 80%,#ead9c5 80%)}
+.speech{box-shadow:0 4px 0 #e4d9c8}
+.avatar{width:100%;min-height:180px;max-height:240px}
+.person-art{width:100%;height:100%;max-width:210px;max-height:222px;filter:drop-shadow(0 6px 1px #70584018)}
+.stage{background:repeating-linear-gradient(0deg,#f9f7f2 0 54px,#e8e4dc 55px 56px)}
+.eyebrow{background:#e3ede4;color:#3a7461}
+.choice{background:#fffbf4;border:2px solid #e6d9c7;box-shadow:0 5px 0 #dcd0bc;border-radius:18px}
+.choice:hover{border-color:#86b49b;background:#f8fff8}
+.choice .emoji{display:grid;place-items:center;width:100%;height:110px}
+.food-art{display:block;width:66px;height:66px;overflow:visible;filter:drop-shadow(0 1px 1px #4a372022)}
+.choice .food-art{width:min(108px,95%);height:108px}
+.ingredient .emoji{display:grid;place-items:center;width:100%;height:60px;pointer-events:none}
+.ingredient .food-art{width:57px;height:57px}
+.ingredient{min-height:108px;background:#fcfaf5;box-shadow:0 3px 0 #e2d8ca;border-radius:12px}
+.ingredient.placed{background:#e9f3e9;border-color:#91bfa1}
+.ingredient .label{color:#43594d}
+.receipt{background:#fffefb;border-color:#d8cab6}
+.need i{width:26px;height:26px;display:grid;place-items:center;flex:0 0 26px}
+.need i .food-art{width:26px;height:26px}.need{overflow:hidden}
+.plate-art .food-art{width:100%;height:100%;max-width:220px;max-height:220px}
+.topping.vector{width:25%;height:25%;display:grid;place-items:center;filter:drop-shadow(0 3px 2px #0002)}
+.topping.vector .food-art{width:100%;height:100%}
+.drag-proxy{width:88px;height:88px;padding:7px;border-radius:18px;background:#fffdf0e8;box-shadow:0 8px 22px #36402c35;border:2px solid #dfd2ba;display:grid;place-items:center;transform:translate(-50%,-50%) rotate(-5deg)}
+.drag-proxy .food-art{width:72px;height:72px}
+.course-dessert .plate-label,.course-dessert .eyebrow{background:#f4e8e7;color:#956673}
+.course-dessert .stagehead h2{color:#6c5156}
+.course-dessert .plate.hover{box-shadow:0 0 0 9px #edc4cd,0 12px 0 #45655718,0 20px 28px #53604d20}
+.course-dessert .primary{background:#b46f83;box-shadow:0 5px 0 #884d62}
+.course-dessert .primary:disabled{background:#c9b9b9;box-shadow:0 5px 0 #a99d9d}
+@media(max-width:1050px){.ingredient{min-height:95px}.ingredient .emoji{height:51px}.ingredient .food-art{width:48px;height:48px}}
+@media(max-width:750px){.avatar{width:65px;min-height:64px;height:67px}.person-art{max-width:63px;max-height:67px}.ingredient{min-height:74px}.ingredient .emoji{height:42px}.ingredient .food-art{width:40px;height:40px}.choice .emoji{height:84px}.choice .food-art{height:82px;width:82px}.plate-art .food-art{max-height:160px}.topping.vector{width:31%;height:31%}.drag-proxy{width:65px;height:65px}.drag-proxy .food-art{width:53px;height:53px}}
+@media(max-width:365px){.ingredient{min-height:65px}.ingredient .food-art{height:32px;width:32px}}
