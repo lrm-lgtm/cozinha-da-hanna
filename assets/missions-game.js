@@ -68,8 +68,8 @@ function plateArt(){
  return '<div id="workdisc" class="workdisc" aria-label="Prato de montagem. Arraste ingredientes para cá.">'+sauce+center+layers+'</div>';
 }
 function prepArt(){
- const r=recipe(),symbol={spread:"🥣",stir:"🥄",chop:"🔪",grill:"🍳",toast:"🍞",scoop:"🍦"}[r.action]||"🍴";
- return '<div id="workdisc" class="workdisc premix" role="button" tabindex="0" aria-label="Mover para preparar"><span class="gesture">'+symbol+'</span><span class="prep-ring" id="prepPercent">'+state.prep+'%</span></div><div class="progressbar"><span id="prepBar" style="width:'+state.prep+'%"></span></div>';
+ const r=recipe(),symbol={spread:"↻",stir:"↻",chop:"✦",grill:"♨",toast:"♨",scoop:"✦"}[r.action]||"↻";
+ return '<div id="workdisc" class="workdisc premix" role="button" tabindex="0" aria-label="Mover para preparar"><span class="prep-sprite">'+icon(r.base)+'</span><span class="gesture">'+symbol+'</span><span class="prep-ring" id="prepPercent">'+state.prep+'%</span></div><div class="progressbar"><span id="prepBar" style="width:'+state.prep+'%"></span></div>';
 }
 function cookArt(){
  const r=recipe();return '<div class="station-image '+(state.cooking?"cooking":"")+'">'+(A.stations[r.station]||A.stations.bancada)+'</div><div class="work-desc">'+(state.cooking?"Preparando...":"Ligue "+(r.station==="forno"?"o forno":r.station==="chapa"?"a chapa":"a estação")+" para finalizar!")+'</div><div class="progressbar"><span style="width:'+(state.cooking?"72":"0")+'%"></span></div>';
