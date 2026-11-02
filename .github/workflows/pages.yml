@@ -42,6 +42,13 @@ jobs:
           for (const name of ['startDrag','moveDrag','releaseDrag','plateHTML','renderPrepare']) {
             if (!source.includes(name)) throw new Error('Mecânica obrigatória ausente: ' + name);
           }
+          for(const asset of ['assets/missions-data.js','assets/mission-art.js','assets/missions-game.js']) {
+            new vm.Script(fs.readFileSync(asset,'utf8'), {filename:asset});
+          }
+          const missionHtml = fs.readFileSync('missions.html','utf8');
+          if (!missionHtml.includes('assets/missions-game.js')) throw new Error('Missões não integradas');
+          if (!fs.existsSync('assets/missions.css')) throw new Error('Estilos das missões ausentes');
+          console.log('Motor de missões e assets validados.');
           console.log('Sintaxe e estrutura do jogo verificadas.');
           NODE
       - name: Validar vozes e variações de frases
@@ -59,6 +66,20 @@ jobs:
             exit 1
           fi
           echo "Oito pratos montados com sucesso em navegador real."
+
+      - name: Testar capítulos, gestos e progressão em Chrome
+        run: |
+          python3 -m http.server 8877 --bind 127.0.0.1 >/tmp/missions-http.log 2>&1 &
+          CHROME=$(command -v google-chrome || command -v chromium || true)
+          if [ -z "$CHROME" ]; then echo "Chrome indisponivel"; exit 1; fi
+          timeout 70s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=18000 --dump-dom http://127.0.0.1:8877/tests/missions-smoke.html > /tmp/missions-result.html 2>/tmp/missions-chrome.log
+          if ! grep -q "PASS: 24 missões" /tmp/missions-result.html; then
+            echo "Falhou a validacao das missoes:"
+            sed -n '/<pre id="result">/,/<\/pre>/p' /tmp/missions-result.html | head -n 25 || true
+            tail -n 10 /tmp/missions-chrome.log || true
+            exit 1
+          fi
+          echo "24 missões declaradas; interação e progressão aprovadas."
 
   deploy:
     needs: verificar
