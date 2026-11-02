@@ -1,5 +1,23 @@
 # 🍕 Cozinha da Hanna — Restaurante Divertido
 
+## 🗺️ Novo modo Missões
+
+**Jogar 24 missões:** https://lrm-lgtm.github.io/cozinha-da-hanna/missions.html
+
+- Seis capítulos de quatro missões: Café da Manhã, Pizzaria, Lanchonete, Doceria, Restaurante Cheio e A Grande Festa.
+- Cozinha 2D redesenhada, com estações ilustradas, retratos variados e sprites vetoriais originais. Não usa imagens externas de terceiros.
+- Quatro etapas de preparo: **gesto sobre a bancada → montar ingredientes → assar/grelhar quando necessário → servir**.
+- A partir do quinto capítulo, há missões com dois ou três pratos.
+- Pontuação por acerto, erro e tempo, progresso local salvo, missões desbloqueadas uma a uma e possibilidade de repetir.
+- Layout responsivo sem rolagem geral durante a cozinha; a despensa e o mapa de missões podem usar rolagem interna.
+- Código: `missions.html`, `assets/missions-data.js`, `assets/mission-art.js`, `assets/missions-game.js`, `assets/missions.css`.
+- Teste funcional: `tests/missions-smoke.html`.
+
+O restaurante original continua disponível em https://lrm-lgtm.github.io/cozinha-da-hanna/.
+
+---
+
+
 Jogo de cozinha 2D, gratuito, no navegador. Atenda **quatro clientes**, prepare um **prato principal** e depois uma **sobremesa** para cada um; arraste os ingredientes e descubra a reação de cada cliente.
 
 **Jogar:** https://lrm-lgtm.github.io/cozinha-da-hanna/
