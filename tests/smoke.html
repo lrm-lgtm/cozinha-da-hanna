@@ -13,6 +13,18 @@ if(!doc.getElementById("missionsMenu"))fail("Menu de pedidos não apareceu");
 if(doc.querySelector('a[href="missions.html"]'))fail("Link para segundo jogo ainda ativo");
 if(!win.FoodArt||!win.HannaVoice)fail("Assets antigos foram perdidos");
 const play=doc.getElementById("play");if(!play)fail("Tela inicial não carregou");play.click();
+const soundConfig=doc.getElementById("voiceSettings");
+if(!soundConfig)fail("Botão de vozes não apareceu");
+soundConfig.click();
+if(!doc.getElementById("pronounce"))fail("Seletor de pronúncia não carregou");
+if(doc.getElementById("pronounce").value!=="Ranna")fail("Pronúncia fonética padrão não está ativa");
+if(!doc.getElementById("voice-female")||!doc.getElementById("voice-male"))fail("Seletores de voz ausentes");
+if(!doc.getElementById("tryPronunciation"))fail("Botão para ouvir pronúncia ausente");
+if(!win.FoodArt.person(0,"Sofia").includes("ribbon")){/* Retratos são SVG sem textos de descrição dos acessórios */}
+const visualA=win.FoodArt.person(0,"Sofia");
+const visualB=win.FoodArt.person(1,"Theo");
+if(visualA===visualB||!visualA.includes("<svg")||!visualB.includes("<svg"))fail("Retratos não variam entre clientes");
+doc.getElementById("saveVoiceSettings").click();
 if(!doc.getElementById("round").textContent.includes("MISSÃO"))fail("Pedido atual não é missão");
 function checkScroll(stage){
  const root=doc.documentElement,app=doc.querySelector(".app");
