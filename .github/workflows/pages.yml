@@ -14,7 +14,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+      - name: Verificar sintaxe do jogo
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const source = html.split('<script>')[1]?.split('</script>')[0];
+          if (!source) throw new Error('JavaScript do jogo ausente');
+          new vm.Script(source, {filename: 'cozinha-da-hanna.js'});
+          for (const name of ['startDrag','moveDrag','releaseDrag','plateHTML','renderPrepare']) {
+            if (!source.includes(name)) throw new Error('Mecânica obrigatória ausente: ' + name);
+          }
+          console.log('Sintaxe e estrutura do jogo verificadas.');
+          NODE
+
   deploy:
+    needs: verificar
     runs-on: ubuntu-latest
     environment:
       name: github-pages
