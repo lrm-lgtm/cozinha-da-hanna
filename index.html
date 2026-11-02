@@ -159,7 +159,7 @@ body.mode-order .pan{display:none}
 </head>
 <body class="mode-order">
 <div class="app">
-<header><div class="brand"><div class="brand-icon" aria-hidden="true">CH</div><div><h1>Cozinha da Hanna</h1><small>Restaurante divertido</small></div></div><div class="controls"><a href="missions.html" class="iconbtn" style="display:grid;place-items:center;text-decoration:none" title="Explorar 24 missões" aria-label="Abrir modo de missões">🗺️</a><div class="score" title="Estrelas"><span aria-hidden="true">⭐</span><b id="score">0</b></div><button class="iconbtn" id="sound" type="button" title="Ativar/desativar som" aria-label="Ativar ou desativar som">🔊</button><button class="iconbtn" id="restart" type="button" title="Recomeçar">↻</button></div></header>
+<header><div class="brand"><div class="brand-icon" aria-hidden="true">CH</div><div><h1>Cozinha da Hanna</h1><small>Restaurante divertido</small></div></div><div class="controls"><button class="iconbtn" id="missionsMenu" type="button" title="Pedidos e missões" aria-label="Abrir lista de missões">📋</button><div class="score" title="Estrelas"><span aria-hidden="true">⭐</span><b id="score">0</b></div><button class="iconbtn" id="sound" type="button" title="Ativar/desativar som" aria-label="Ativar ou desativar som">🔊</button><button class="iconbtn" id="restart" type="button" title="Recomeçar">↻</button></div></header>
 <div class="progress"><b id="round">CLIENTE 1 DE 5</b><div class="steps" id="steps"></div><b id="progressText">📝 Anote o pedido</b></div>
 <main class="game-layout">
 <aside class="panel guest"><div class="lamp">🟢 CLIENTE NO BALCÃO</div><div class="speech"><strong id="customerName">CLIENTE</strong><p id="request">O que vamos preparar hoje?</p></div><div class="avatar" id="avatar" aria-hidden="true">👧</div><button class="speak" id="speak" type="button" title="Ouvir o pedido">🔊 Ouvir pedido</button></aside>
@@ -170,13 +170,14 @@ body.mode-order .pan{display:none}
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div><div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden></div>
 <script src="assets/food-art.js"></script>
+<script src="assets/missions-data.js"></script>
 <script src="assets/voice-engine.js"></script>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 const ingredients={massa:['Massa de pizza','🫓'],queijo:['Queijo','🧀'],tomate:['Tomate','🍅'],milho:['Milho','🌽'],pao:['Pão','🍞'],carne:['Hambúrguer','🥩'],alface:['Alface','🥬'],morango:['Morango','🍓'],banana:['Banana','🍌'],chocolate:['Chocolate','🍫'],confeitos:['Confeitos','🍬'],casquinha:['Casquinha','🍦'],pepino:['Pepino','🥒'],cenoura:['Cenoura','🥕'],panqueca:['Panqueca','🥞'],mel:['Mel','🍯'],ovo:['Ovo','🥚'],tigela:['Taça','🥣']};
-const dishes={pizza:['Pizza','🍕','massa'],burger:['Hambúrguer','🍔','pao'],sorvete:['Sorvete','🍨','casquinha'],salada:['Salada','🥗','alface'],panqueca:['Panqueca','🥞','panqueca'],sanduiche:['Sanduíche','🥪','pao'],frutas:['Taça de frutas','🍓','tigela']};
+const dishes={pizza:['Pizza','🍕','massa'],burger:['Hambúrguer','🍔','pao'],sorvete:['Sorvete','🍨','casquinha'],salada:['Salada','🥗','alface'],panqueca:['Panqueca','🥞','panqueca'],sanduiche:['Sanduíche','🥪','pao'],frutas:['Taça de frutas','🍓','tigela'],torrada:['Torrada','🍞','pao'],omelete:['Omelete','🍳','ovo']};
 const orders=[
 ['pizza','Pizza de queijo e tomate','Uma pizza com queijo e tomate, por favor!',['massa','queijo','tomate']],
 ['pizza','Pizza de queijo e milho','Quero uma pizza com queijo e milho!',['massa','queijo','milho']],
@@ -195,14 +196,54 @@ const orders=[
 ];
 const names=['Nina','Sofia','Theo','Bia','Lili','Davi','Pedro'];
 const faces=['👧🏽','👧🏻','👦🏽','👧🏿','👧🏼','👦🏻','👦🏼'];
-const S={round:0,course:'main',stage:'order',stars:0,placed:[],deck:[],guests:[],palette:[],sound:true,locked:false,clientStars:0,ratings:[],activeRequest:'',prepStarted:0};
+const S={round:0,course:'main',stage:'order',stars:0,placed:[],deck:[],guests:[],palette:[],sound:true,locked:false,clientStars:0,ratings:[],activeRequest:'',prepStarted:0,mission:null,progress:{}};
 const dessertTypes=['sorvete','panqueca','frutas'];
 const isDessert=()=>S.course==='dessert';
 const foodIcon=id=>window.FoodArt?window.FoodArt.ingredient(id):ingredients[id][1];
-const dishIcon=id=>window.FoodArt?window.FoodArt.dish(id):dishes[id][1];
+const dishIcon=id=>window.FoodArt?(window.FoodArt.dish(id)||window.FoodArt.ingredient(dishes[id][2])):dishes[id][1];
 let drag=null,toastTimer=0,audio=null;
 function sample(arr){let a=arr.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));let z=a[i];a[i]=a[j];a[j]=z;}return a;}
-function order(){return S.deck[S.round][S.course];}
+function order(){return S.deck[S.round];}
+const Missions=window.HannaMissions;
+const SAVE_KEY='hanna_missions_v1';
+try{S.progress=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')||{};}catch(e){S.progress={};}
+function saveMissionProgress(){
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify(S.progress));}catch(e){snack('Não foi possível salvar o progresso neste navegador.',true);}
+}
+const specialTypes={torrada:'torrada',omelete:'omelete'};
+function missionOrder(recipeId){
+ const r=Missions.recipes[recipeId];
+ if(!r)throw Error('Receita inexistente: '+recipeId);
+ const type=specialTypes[recipeId]||r.art;
+ const sweet=type==='sorvete'||(type==='frutas'&&S.mission.chapter!=='manha')||(type==='panqueca'&&S.mission.chapter==='doce');
+ return [type,r.label,'Quero '+r.label.toLowerCase()+', por favor!',r.needs.slice(),sweet?'dessert':'main'];
+}
+function activeMission(){
+ const last=Missions.missions.find(m=>Missions.unlocked(m.id,S.progress)&&!S.progress[m.id]?.completed);
+ return last||Missions.missions[Missions.missions.length-1];
+}
+function selectMission(id){
+ const m=Missions.get(id);
+ if(!m||!Missions.unlocked(id,S.progress))return;
+ window.HannaVoice.cancel();
+ S.mission=m;
+ hide();
+ start();
+}
+function missionMenu(){
+ window.HannaVoice.cancel();
+ const groups=Missions.chapters.map(ch=>{
+  const cards=ch.missions.map(m=>{
+    const unlocked=Missions.unlocked(m.id,S.progress),p=S.progress[m.id];
+    const mark=p?.completed?('⭐'.repeat(p.stars||0)||'✓'):unlocked?'JOGAR':'🔒';
+    return '<button class="mission-pick '+(unlocked?'':'locked')+'" data-mission-id="'+m.id+'" '+(unlocked?'':'disabled')+'><small>'+ch.icon+' MISSÃO '+(m.index+1)+'</small><b>'+m.title+'</b><span>'+mark+'</span></button>';
+  }).join('');
+  return '<section class="mission-group"><h3>'+ch.title+'</h3><div class="mission-choices">'+cards+'</div></section>';
+ }).join('');
+ show('<h2 id="modalTitle">Pedidos e missões</h2><p>A cada missão, os pedidos ficam mais variados. Tudo acontece neste mesmo restaurante.</p><div class="mission-list">'+groups+'</div><div class="mission-menu-actions"><button class="secondary" id="closeMissionMenu">Voltar ao restaurante</button></div>');
+ $('closeMissionMenu').onclick=hide;
+ document.querySelectorAll('[data-mission-id]').forEach(b=>{b.onclick=()=>selectMission(b.dataset.missionId);});
+}
 function dish(){return dishes[order()[0]];}
 function snack(t,warn){const x=$('toast');x.textContent=t;x.className='toast show'+(warn?' warning':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>x.className='toast',2500);}
 function sfx(kind){if(!S.sound)return;try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let melody=kind==='wrong'?[220,185]:kind==='win'?[523,659,784]:[440,587];melody.forEach((v,i)=>{const osc=audio.createOscillator(),gain=audio.createGain(),start=audio.currentTime+i*.09;osc.type='sine';osc.frequency.value=v;gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(.055,start+.018);gain.gain.exponentialRampToValueAtTime(.001,start+.17);osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+.18);});}catch(e){}}
@@ -225,9 +266,9 @@ function rating(){
 }
 function show(html){$('overlay').innerHTML='<div class="modal">'+html+'</div>';$('overlay').hidden=false;}
 function hide(){$('overlay').hidden=true;$('overlay').innerHTML='';}
-function header(){let idx=['order','prepare','serve'].indexOf(S.stage);if(idx<0)idx=2;$('round').textContent='CLIENTE '+(S.round+1)+' DE 4 • '+(isDessert()?'SOBREMESA':'PRINCIPAL');$('score').textContent=S.stars;$('progressText').textContent=S.stage==='order'?(isDessert()?'🍨 Anote a sobremesa':'📝 Anote o pedido'):S.stage==='prepare'?(isDessert()?'🍓 Prepare a sobremesa':'🍳 Prepare o prato'):'🎉 Prontinho!';$('steps').innerHTML=['Pedido','Preparar','Servir'].map((t,i)=>'<span class="'+(i===idx?'on':i<idx?'done':'')+'"><strong>'+(i<idx?'✓':(i+1))+'</strong>'+t+'</span>').join('');$('request').textContent='“'+(S.activeRequest||order()[2])+'”';$('customerName').textContent=S.guests[S.round][0].toUpperCase()+' DIZ:';$('avatar').innerHTML=window.FoodArt?window.FoodArt.person(S.round):S.guests[S.round][1];document.body.className='mode-'+S.stage+(isDessert()?' course-dessert':'');}
+function header(){let idx=['order','prepare','serve'].indexOf(S.stage);if(idx<0)idx=2;$('round').textContent='MISSÃO '+(Missions.missions.indexOf(S.mission)+1)+'/24 · PEDIDO '+(S.round+1)+'/'+S.deck.length;$('score').textContent=S.stars;$('progressText').textContent=S.stage==='order'?(isDessert()?'🍨 Sobremesa':'📝 Anote o pedido'):S.stage==='prepare'?(isDessert()?'🍓 Prepare a sobremesa':'🍳 Prepare o prato'):'🎉 Prontinho!';$('steps').innerHTML=['Pedido','Preparar','Servir'].map((t,i)=>'<span class="'+(i===idx?'on':i<idx?'done':'')+'"><strong>'+(i<idx?'✓':(i+1))+'</strong>'+t+'</span>').join('');$('request').textContent='“'+(S.activeRequest||order()[2])+'”';$('customerName').textContent=S.guests[S.round][0].toUpperCase()+' DIZ:';$('avatar').innerHTML=window.FoodArt?window.FoodArt.person(S.round):S.guests[S.round][1];document.body.className='mode-'+S.stage+(isDessert()?' course-dessert':'');}
 function stageHead(tag,title,sub){return '<div class="stagehead"><span class="eyebrow">'+tag+'</span><h2>'+title+'</h2><p>'+sub+'</p></div>';}
-function renderOrder(){S.stage='order';S.placed=[];S.locked=false;S.activeRequest=window.HannaVoice.request(order()[2],S.course,S.guests[S.round][0]);header();let type=order()[0];let pool=isDessert()?dessertTypes:Object.keys(dishes).filter(x=>!dessertTypes.includes(x));let choices=sample([type].concat(sample(pool.filter(x=>x!==type)).slice(0,2)));$('stageContent').innerHTML=stageHead(isDessert()?'🍧 SOBREMESA • ANOTAR':'📝 PRATO PRINCIPAL • ANOTAR',isDessert()?'Qual sobremesa foi pedida?':'Qual prato foi pedido?','Escolha pela imagem e anote a comanda.')+'<div class="stagebody"><div class="choices">'+choices.map(k=>'<button type="button" class="choice" data-dish="'+k+'"><span class="emoji">'+dishIcon(k)+'</span><b>'+dishes[k][0]+'</b><small>ANOTAR PEDIDO</small></button>').join('')+'</div><p class="message" id="message">Confira a comanda e escolha com atenção.</p></div>';$('pantry').innerHTML='<div class="panhead"><small>📒 CADERNINHO</small><h3>Anote o pedido</h3><p>Escute e escolha o prato.</p></div><div class="order-help"><div class="paper">📝</div>O pedido aparece quando você escolher o prato!</div>';$('tip').textContent='Ouça o cliente e escolha o prato!';$('actions').innerHTML='<button class="secondary" id="hear">🔊 Ouvir de novo</button>';$('hear').onclick=speak;document.querySelectorAll('.choice').forEach(btn=>btn.addEventListener('click',()=>{if(S.stage!=='order'||S.locked)return;if(btn.dataset.dish!==type){sfx('wrong');$('message').textContent='Quase! Tente outro prato. 💛';btn.style.borderColor='#efa88e';return;}S.locked=true;btn.style.borderColor='#68c99a';$('message').textContent='Pedido anotado! ✨';sfx('good');setTimeout(renderPrepare,420);}));}
+function renderOrder(){S.stage='order';S.placed=[];S.locked=false;S.activeRequest=window.HannaVoice.request(order()[2],S.course,S.guests[S.round][0]);header();let type=order()[0];let pool=isDessert()?['sorvete','panqueca','frutas']:['pizza','burger','salada','sanduiche','torrada','omelete','panqueca','frutas'];let choices=sample([type].concat(sample(pool.filter(x=>x!==type)).slice(0,2)));$('stageContent').innerHTML=stageHead(isDessert()?'🍧 SOBREMESA • ANOTAR':'📝 PRATO PRINCIPAL • ANOTAR',isDessert()?'Qual sobremesa foi pedida?':'Qual prato foi pedido?','Escolha pela imagem e anote a comanda.')+'<div class="stagebody"><div class="choices">'+choices.map(k=>'<button type="button" class="choice" data-dish="'+k+'"><span class="emoji">'+dishIcon(k)+'</span><b>'+dishes[k][0]+'</b><small>ANOTAR PEDIDO</small></button>').join('')+'</div><p class="message" id="message">Confira a comanda e escolha com atenção.</p></div>';$('pantry').innerHTML='<div class="panhead"><small>📒 CADERNINHO</small><h3>Anote o pedido</h3><p>Escute e escolha o prato.</p></div><div class="order-help"><div class="paper">📝</div>O pedido aparece quando você escolher o prato!</div>';$('tip').textContent='Ouça o cliente e escolha o prato!';$('actions').innerHTML='<button class="secondary" id="hear">🔊 Ouvir de novo</button>';$('hear').onclick=speak;document.querySelectorAll('.choice').forEach(btn=>btn.addEventListener('click',()=>{if(S.stage!=='order'||S.locked)return;if(btn.dataset.dish!==type){sfx('wrong');$('message').textContent='Quase! Tente outro prato. 💛';btn.style.borderColor='#efa88e';return;}S.locked=true;btn.style.borderColor='#68c99a';$('message').textContent='Pedido anotado! ✨';sfx('good');setTimeout(renderPrepare,420);}));}
 const coords=[[33,33],[65,34],[47,52],[32,66],[67,66],[50,22],[51,77],[75,49]];
 function drawToken(id,n){const isPizza=order()[0]==='pizza';let points=coords.slice(0,6);let bits=[];if(isPizza&&(id==='queijo'||id==='tomate'||id==='milho')){let css=id==='queijo'?'cheese':id==='tomate'?'tomato':'corn';points.forEach((xy,i)=>{bits.push('<span class="topping '+css+'" style="left:'+xy[0]+'%;top:'+xy[1]+'%;'+(id==='queijo'?'transform:translate(-50%,-50%) rotate('+(i*36)+'deg)':'')+'"></span>');});}else{let xy=coords[(n+1)%coords.length];bits.push('<span class="topping vector" style="left:'+xy[0]+'%;top:'+xy[1]+'%">'+foodIcon(id)+'</span>');}return bits.join('');}
 function plateHTML(){let base=dish()[2],has=S.placed.includes(base),type=order()[0];let art=type==='pizza'?'<div class="pizza-dough"></div>':foodIcon(base);return '<div class="plate-zone"><span class="plate-label">'+(isDessert()?'SOBREMESA: ':'PRATO: ')+dish()[0].toUpperCase()+'</span><div class="plate" id="plate" aria-label="Prato: solte um ingrediente aqui"><div class="plate-art'+(has?'':' ghost')+'">'+art+'</div><div class="topping-area">'+S.placed.filter(id=>id!==base).map((id,i)=>drawToken(id,i)).join('')+'</div><span class="drop-hint" id="dropHint">'+(has?'SOLTE AQUI!':'COMECE PELA BASE')+'</span></div></div>';}
@@ -265,25 +306,44 @@ function cancelDrag(e){if(drag&&e.pointerId===drag.pointer){if(drag.proxy)drag.p
 window.addEventListener('pointermove',moveDrag,{passive:false});window.addEventListener('pointerup',releaseDrag);window.addEventListener('pointercancel',cancelDrag);
 function serve(){
  if(S.stage!=='prepare'||S.placed.length===0)return;
- const result=rating();
- S.stage='serve';S.stars+=result.stars;S.clientStars+=result.stars;
- S.ratings.push({course:S.course,client:S.round,...result});
- header();
+ const result=rating();S.stage='serve';S.stars+=result.stars;S.ratings.push(result);header();
  if(result.stars>=2)sfx('win');else sfx('wrong');
  const faces={excellent:'😍',good:'🙂',okay:'😐',low:'😕'};
  const badge={excellent:'Adorou!',good:'Gostou',okay:'Mais ou menos',low:'Não gostou muito'};
- show('<div class="big">'+faces[result.level]+'</div><h2 id="modalTitle">'+badge[result.level]+'</h2><p class="reaction-text">“'+result.response+'”</p><div class="stars">'+('⭐'.repeat(result.stars)||'☆')+'</div><div class="rating-meter"><span style="width:'+result.score+'%"></span></div><p class="rating-details">'+result.score+'% de satisfação • '+result.correct+' certos • '+result.wrong+' diferentes • '+result.missing+' faltando • '+result.elapsed+'s</p><button class="secondary" id="repeatReaction">🔊 Ouvir avaliação</button><div style="margin-top:13px"><button class="primary" id="next">'+(!isDessert()?'Preparar sobremesa →':S.round===3?'Ver minha festa':'Próximo cliente →')+'</button></div>');
+ const last=S.round===S.deck.length-1;
+ show('<div class="big">'+faces[result.level]+'</div><h2 id="modalTitle">'+badge[result.level]+'</h2><p class="reaction-text">“'+result.response+'”</p><div class="stars">'+('⭐'.repeat(result.stars)||'☆')+'</div><div class="rating-meter"><span style="width:'+result.score+'%"></span></div><p class="rating-details">'+result.score+'% de satisfação • '+result.correct+' certos • '+result.wrong+' diferentes • '+result.missing+' faltando • '+result.elapsed+'s</p><button class="secondary" id="repeatReaction">🔊 Ouvir avaliação</button><div style="margin-top:13px"><button class="primary" id="next">'+(last?'Concluir missão':'Próximo pedido →')+'</button></div>');
  $('repeatReaction').onclick=()=>say(result.response);
- $('next').onclick=()=>{window.HannaVoice.cancel();hide();if(!isDessert()){S.course='dessert';renderOrder();}else if(S.round===3){finish();}else{S.round++;S.course='main';S.clientStars=0;renderOrder();}};
+ $('next').onclick=()=>{window.HannaVoice.cancel();hide();if(last){finish();}else{S.round++;S.course=order()[4];renderOrder();}};
  say(result.response);
 }
-function finish(){let best=0;try{best=Number(localStorage.getItem('cozinha-hanna-best'))||0;if(S.stars>best)localStorage.setItem('cozinha-hanna-best',String(S.stars));}catch(e){}show('<div class="big">🏆</div><h2 id="modalTitle">Hanna, você arrasou!</h2><p>Seu restaurante atendeu quatro clientes com prato principal e sobremesa e ganhou <b>'+S.stars+' estrelas</b>!<br>Recorde: '+Math.max(best,S.stars)+' ⭐</p><button class="primary" id="again">Jogar outra vez 💚</button>');$('again').onclick=()=>{hide();start();};}
-function start(){S.round=0;S.course='main';S.stars=0;S.placed=[];S.clientStars=0;S.ratings=[];S.activeRequest='';S.prepStarted=0;window.HannaVoice.reset();const mains=sample(['pizza','burger','salada','sanduiche']);const sweets=sample(['sorvete','panqueca','frutas','sorvete']);S.deck=mains.map((type,i)=>({main:sample(orders.filter(x=>x[0]===type))[0],dessert:sample(orders.filter(x=>x[0]===sweets[i]))[0]}));const femaleGuests=sample(names.map((name,i)=>[name,faces[i]]).filter(g=>['Nina','Sofia','Bia','Lili'].includes(g[0]))).slice(0,2);const maleGuests=sample(names.map((name,i)=>[name,faces[i]]).filter(g=>['Theo','Davi','Pedro'].includes(g[0]))).slice(0,2);S.guests=sample(femaleGuests.concat(maleGuests));renderOrder();}
+function finish(){
+ const earned=Math.max(0,Math.min(3,Math.round(S.stars/S.deck.length)));
+ const old=S.progress[S.mission.id]||{};
+ S.progress[S.mission.id]={completed:true,stars:Math.max(old.stars||0,earned),lastPlayed:new Date().toISOString()};
+ saveMissionProgress();
+ const next=Missions.next(S.mission.id);
+ const hasNext=next&&Missions.unlocked(next.id,S.progress);
+ const nextBtn=hasNext?'<button class="primary" id="nextMission">Próxima missão →</button>':'<button class="primary" id="missionsAgain">Ver minhas missões</button>';
+ show('<div class="big">🏆</div><h2 id="modalTitle">Missão concluída!</h2><p><b>'+S.mission.title+'</b><br>Você completou '+S.deck.length+' pedido'+(S.deck.length>1?'s':'')+' e conquistou '+S.stars+' estrelas!</p><div class="stars">'+('⭐'.repeat(earned)||'☆')+'</div><p>Uma nova missão fica disponível quando você termina a anterior.</p>'+nextBtn+'<div style="margin-top:13px"><button class="secondary" id="replayMission">Repetir missão</button> <button class="secondary" id="seeMissions">Escolher missão</button></div>');
+ if(hasNext)$('nextMission').onclick=()=>selectMission(next.id);
+ else $('missionsAgain').onclick=missionMenu;
+ $('replayMission').onclick=()=>{hide();start();};
+ $('seeMissions').onclick=missionMenu;
+}
+function start(){
+ if(!S.mission)S.mission=activeMission();
+ S.round=0;S.course='main';S.stars=0;S.placed=[];S.clientStars=0;S.ratings=[];S.activeRequest='';S.prepStarted=0;window.HannaVoice.reset();
+ S.deck=S.mission.orders.map(missionOrder);
+ S.guests=sample(names.map((name,i)=>[name,faces[i]])).slice(0,S.deck.length);
+ S.course=order()[4];
+ renderOrder();
+}
 $('speak').onclick=speak;
 $('sound').onclick=()=>{S.sound=!S.sound;$('sound').textContent=S.sound?'🔊':'🔇';$('sound').title=S.sound?'Desativar falas e som':'Ativar falas e som';if(!S.sound)window.HannaVoice.cancel();};
-$('restart').onclick=()=>{show('<div class="big">🍪</div><h2 id="modalTitle">Recomeçar?</h2><p>Quer atender os clientes desde o começo?</p><button class="primary" id="yes">Sim, vamos lá!</button><p style="margin-top:17px"><button class="secondary" id="no">Continuar jogando</button></p>');$('yes').onclick=()=>{hide();start();};$('no').onclick=hide;};
+$('restart').onclick=()=>{show('<div class="big">🍪</div><h2 id="modalTitle">Recomeçar?</h2><p>Quer recomeçar esta missão?</p><button class="primary" id="yes">Sim, vamos lá!</button><p style="margin-top:17px"><button class="secondary" id="no">Continuar jogando</button></p>');$('yes').onclick=()=>{hide();start();};$('no').onclick=hide;};
+$('missionsMenu').onclick=missionMenu;
 start();
-show('<div class="big">👩‍🍳</div><h2 id="modalTitle">O restaurante da Hanna abriu!</h2><p>Atenda quatro clientes. Cada um terá sua própria voz e jeito de falar. Prepare o prato principal e depois a sobremesa!</p><div class="steps-guide"><span>👂 Ouça</span><span>📝 Anote</span><span>👆 Arraste</span><span>🍽️ Sirva!</span></div><button class="primary" id="play">Vamos cozinhar! ✨</button><div style="margin-top:15px"><a href="missions.html" class="primary" style="display:inline-block;background:#bd8456;box-shadow:0 5px 0 #94613c;text-decoration:none">🗺️ Explorar 24 missões</a></div>');$('play').onclick=()=>{hide();sfx('win');};
+show('<div class="big">👩‍🍳</div><h2 id="modalTitle">O restaurante da Hanna abriu!</h2><p>Agora os pedidos evoluem a cada missão. Comece com receitas simples, descubra novos ingredientes e atenda pedidos maiores sem sair deste restaurante!</p><div class="steps-guide"><span>👂 Ouça</span><span>📝 Anote</span><span>👆 Arraste</span><span>🍽️ Sirva!</span></div><button class="primary" id="play">Vamos cozinhar! ✨</button><div style="margin-top:15px"><button class="secondary" id="openMissionMenu">📋 Ver evolução dos pedidos</button></div>');$('play').onclick=()=>{hide();sfx('win');};$('openMissionMenu').onclick=missionMenu;
 })();
 </script>
 </body>
