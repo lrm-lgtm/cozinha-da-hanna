@@ -44,6 +44,39 @@ for(let index=0;index<8;index++){
  if(index===7&&!doc.getElementById('overlay').textContent.includes('Hanna, você arrasou'))fail('Tela final ausente');
 }
 if(doc.getElementById('score').textContent!=='24')fail('Pontuação esperada 24');
-out.textContent='PASS: 8 preparos arrastados, 4 pratos principais, 4 sobremesas, 24 estrelas';
+
+// Verificar que a página inteira não apresenta rolagem em tamanhos de tela comuns.
+for(const [w,h] of [[1200,850],[1366,768],[390,844],[375,667],[360,640]]){
+ iframe.style.width=w+'px';iframe.style.height=h+'px';
+ await sleep(75);
+ const root=doc.documentElement;
+ if(root.scrollHeight>root.clientHeight+2)fail('Scroll vertical desnecessário em '+w+'x'+h+': '+root.scrollHeight+' > '+root.clientHeight);
+ if(root.scrollWidth>root.clientWidth+2)fail('Scroll horizontal desnecessário em '+w+'x'+h);
+}
+const again=doc.getElementById('again');
+if(!again)fail('Botão jogar novamente não encontrado');
+again.click();
+iframe.style.width='375px';iframe.style.height='667px';
+await sleep(60);
+if(doc.documentElement.scrollHeight>doc.documentElement.clientHeight+2)fail('Scroll no atendimento mobile');
+let type=typeOf(doc.getElementById('request').textContent);
+doc.querySelector('.choice[data-dish="'+type+'"]').click();
+await sleep(500);
+if(doc.documentElement.scrollHeight>doc.documentElement.clientHeight+2)fail('Scroll no preparo mobile');
+const need=[...doc.querySelectorAll('.need')].map(x=>x.textContent);
+const wrong=[...doc.querySelectorAll('.ingredient')].find(b=>!need.some(t=>t.includes(b.querySelector('.label').textContent)));
+if(!wrong)fail('Não existe ingrediente surpresa para testar');
+const r=wrong.getBoundingClientRect(),p=doc.getElementById('plate').getBoundingClientRect();
+wrong.dispatchEvent(new win.PointerEvent('pointerdown',{bubbles:true,pointerId:522,pointerType:'touch',clientX:r.x+5,clientY:r.y+5}));
+win.dispatchEvent(new win.PointerEvent('pointermove',{bubbles:true,pointerId:522,pointerType:'touch',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
+win.dispatchEvent(new win.PointerEvent('pointerup',{bubbles:true,pointerId:522,pointerType:'touch',clientX:p.x+p.width/2,clientY:p.y+p.height/2}));
+if(!wrong.disabled)fail('Não adicionou o ingrediente errado arrastado');
+if(doc.getElementById('serve').disabled)fail('Não liberou servir com receita incompleta');
+doc.getElementById('serve').click();
+const evaluation=doc.querySelector('.rating-details');
+if(!evaluation||!evaluation.textContent.includes('0% de satisfação')||!evaluation.textContent.includes('1 diferentes'))fail('Avaliação negativa incorreta: '+evaluation?.textContent);
+if(!doc.getElementById('repeatReaction'))fail('Botão para ouvir reação ausente');
+out.textContent='PASS: 8 preparos perfeitos; ingrediente errado avaliado; voz e satisfação; layouts sem scroll em 5 resoluções';
+
 })().catch(e=>document.getElementById('result').textContent='FAIL: '+(e.stack||e));
 </script></body></html>
