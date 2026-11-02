@@ -41,6 +41,19 @@ jobs:
           }
           console.log('Sintaxe e estrutura do jogo verificadas.');
           NODE
+      - name: Testar pedidos, arrasto e sobremesas no Chrome
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/cozinha-http.log 2>&1 &
+          CHROME=$(command -v google-chrome || command -v chromium || true)
+          if [ -z "$CHROME" ]; then echo "Chrome não encontrado"; exit 1; fi
+          timeout 70s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=20000 --dump-dom http://127.0.0.1:8765/tests/smoke.html > /tmp/cozinha-smoke-result.html 2>/tmp/cozinha-chrome.log
+          if ! grep -q "PASS: 8 preparos arrastados" /tmp/cozinha-smoke-result.html; then
+            echo "Teste do jogo falhou:"
+            grep -o '<pre id="result">[^<]*' /tmp/cozinha-smoke-result.html || true
+            tail -n 12 /tmp/cozinha-chrome.log || true
+            exit 1
+          fi
+          echo "Oito pratos montados com sucesso em navegador real."
 
   deploy:
     needs: verificar
