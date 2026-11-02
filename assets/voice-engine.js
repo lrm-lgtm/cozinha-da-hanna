@@ -65,14 +65,14 @@ const bank={
       "Chegou rapidinho, Hanna! Muito gostoso, só mudou um detalhezinho.",
       "Nossa, que rapidez, chefe Hanna! Está bom, mas ficou um pouquinho diferente.",
       "Gostei, Hanna! Foi rápido e quase igual ao meu pedido.",
-      "Que agilidade! Na próxima, só confere os ingredientes, tá, chef?"
+      "Que agilidade, Hanna! Na próxima, só confere os ingredientes, tá, chef?"
     ],
     regular:[
       "Gostei, chef Hanna! Só faltou um pequeno detalhe do meu pedido.",
       "Ficou bom, Hanna! Da próxima vez, capricha na comanda.",
       "Tá gostoso, chefe Hanna! Eu só trocaria um ingrediente.",
       "Valeu pelo carinho, Hanna! Ficou quase como eu pedi.",
-      "Humm, que cheirinho bom! Só ficou um pouquinho diferente, chef."
+      "Humm, que cheirinho bom, Hanna! Só ficou um pouquinho diferente, chef."
     ]
   },
   okay:{
@@ -80,7 +80,7 @@ const bank={
       "Foi rapidinho, chefe Hanna, mas alguns ingredientes não eram os meus.",
       "Hanna, você correu na cozinha! Acho que faltou conferir meu pedido.",
       "Nossa, chegou rápido! Mas esse prato saiu bem diferente, Hanna.",
-      "Que pressa, chef! Da próxima, confere minha comanda com calma."
+      "Que pressa, chefe Hanna! Da próxima, confere minha comanda com calma."
     ],
     regular:[
       "Hanna, acho que você trocou alguns ingredientes do meu pedido.",
