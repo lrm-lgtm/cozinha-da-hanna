@@ -132,7 +132,8 @@ function pronunciation(text){
 function setVoicePreference(gender,uri){
  if(!["male","female"].includes(gender)||typeof uri!=="string")return false;
  options[gender]=uri;
- assignedVoices.clear();
+ // Uma alteração no menu só vale para o próximo cliente/rodada.
+ // Jamais substituir a voz de quem já fez um pedido.
  savePreferences();return true;
 }
 function getPreferences(){return {...options};}
@@ -140,6 +141,9 @@ function availableVoices(){return voices().map(v=>({name:v.name,lang:v.lang,voic
 
 const used=new Set();
 const assignedVoices=new Map();
+let pendingSpeech=null;
+let pendingTimer=null;
+let voiceListenerActive=false;
 let lastText="";
 let lastVoiceName="";
 function sample(list,key){
@@ -183,42 +187,101 @@ function voices(){
  try{return engine.getVoices().filter(v=>/^pt([-_]|$)/i.test(v.lang||""));}catch(e){return [];}
 }
 function pickVoice(p){
- const pool=voices();if(!pool.length)return null;
  const id=p.name;
- const preferred=pool.find(v=>v.voiceURI===options[p.gender]);
- if(preferred)return preferred;
- const previous=assignedVoices.get(id);
- if(previous){const found=pool.find(v=>v.voiceURI===previous);if(found)return found;}
- const sorted=pool.slice().sort((a,b)=>voiceScore(b,p)-voiceScore(a,p));
- // Para cada personagem, preserve a identidade vocal. Quando houver opções
- // equivalentes, alterne entre vozes ao invés de deixar todos iguais.
- const best=voiceScore(sorted[0],p);
- const near=sorted.filter(v=>voiceScore(v,p)>=best-14);
- const chosen=near[p.slot%near.length]||sorted[0];
- assignedVoices.set(id,chosen.voiceURI);
+ // O primeiro áudio falado é o contrato de identidade da personagem.
+ // Mesmo que voiceschanged acrescente/reordene vozes, ele não muda.
+ const already=assignedVoices.get(id);
+ if(already)return already.voice;
+ const pool=voices();if(!pool.length)return null;
+ const preference=pool.find(v=>v.voiceURI===options[p.gender]);
+ let chosen=preference;
+ if(!chosen){
+   // Nunca selecionar uma voz do sexo oposto se houver uma identificada
+   // do mesmo sexo ou se só existirem opções explicitamente opostas.
+   const recognizedGender=p.gender==="female"?female:male;
+   const oppositeGender=p.gender==="female"?male:female;
+   const sameGender=pool.filter(v=>recognizedGender.test(v.name||""));
+   const unknownGender=pool.filter(v=>!oppositeGender.test(v.name||""));
+   const candidates=sameGender.length?sameGender:unknownGender;
+   if(!candidates.length)return null;
+   const sorted=candidates.slice().sort((a,b)=>voiceScore(b,p)-voiceScore(a,p));
+   const best=voiceScore(sorted[0],p);
+   const near=sorted.filter(v=>voiceScore(v,p)>=best-14);
+   chosen=near[p.slot%near.length]||sorted[0];
+ }
+ if(!chosen)return null;
+ assignedVoices.set(id,{voice:chosen,voiceURI:chosen.voiceURI,gender:p.gender});
  return chosen;
 }
-function cancel(){try{root.speechSynthesis?.cancel();}catch(e){}}
-function speak(text,p,opts={}){
- if(!opts.enabled)return {spoken:false,reason:"muted"};
- if(!root.speechSynthesis||!root.SpeechSynthesisUtterance)return {spoken:false,reason:"unsupported"};
+function clearPending(){
+ if(pendingTimer!=null&&typeof root.clearTimeout==="function")root.clearTimeout(pendingTimer);
+ pendingTimer=null;pendingSpeech=null;
+}
+function cancel(){
+ clearPending();
+ try{root.speechSynthesis?.cancel();}catch(e){}
+}
+function ensureVoicesListener(){
+ const engine=root.speechSynthesis;
+ if(voiceListenerActive||!engine||typeof engine.addEventListener!=="function")return;
+ engine.addEventListener("voiceschanged",()=>flushPending());
+ voiceListenerActive=true;
+}
+function play(text,p,opts,selected){
+ if(!selected)return {spoken:false,reason:"voice-unavailable"};
  try{
-   cancel();
    const u=new root.SpeechSynthesisUtterance(pronunciation(cleanRequest(text)));
    u.lang="pt-BR";
-   const selected=pickVoice(p);
-   if(selected)u.voice=selected;
-   // Ajustes moderados: pitch exagerado produz timbre artificial.
+   u.voice=selected; // Nunca omitir: o padrão automático pode ser outra pessoa.
    u.rate=Math.max(.88,Math.min(1.07,p.rate||1));
    u.pitch=Math.max(.91,Math.min(1.12,p.pitch||1));
    u.volume=1;
    u.onerror=()=>{if(typeof opts.onError==="function")opts.onError();};
    root.speechSynthesis.speak(u);
-   lastText=text;lastVoiceName=selected?.name||"voz padrão do navegador";
-   return {spoken:true,voice:lastVoiceName,quality:selected&&natural.test(selected.name||"")?"preferred":"system"};
- }catch(e){return {spoken:false,reason:"error"};}
+   lastText=text;lastVoiceName=selected.name||"voz selecionada";
+   return {spoken:true,voice:lastVoiceName,quality:natural.test(selected.name||"")?"preferred":"system"};
+ }catch(e){
+   if(typeof opts.onError==="function")opts.onError();
+   return {spoken:false,reason:"error"};
+ }
 }
-function reset(){used.clear();assignedVoices.clear();lastText="";lastVoiceName="";}
-function inspect(){return {available:voices().map(v=>({name:v.name,lang:v.lang,local:v.localService})),lastVoiceName,lastText};}
+function flushPending(){
+ const p=pendingSpeech;if(!p)return;
+ const selected=pickVoice(p.profile);
+ if(selected){
+   clearPending();
+   play(p.text,p.profile,p.options,selected);
+ }
+}
+function retryPending(){
+ if(!pendingSpeech)return;
+ flushPending();if(!pendingSpeech)return;
+ if(pendingSpeech.attempts++>=7){
+   const opts=pendingSpeech.options;
+   clearPending();
+   if(typeof opts.onError==="function")opts.onError();
+   return;
+ }
+ if(typeof root.setTimeout==="function")pendingTimer=root.setTimeout(retryPending,220);
+}
+function speak(text,p,opts={}){
+ if(!opts.enabled)return {spoken:false,reason:"muted"};
+ if(!root.speechSynthesis||!root.SpeechSynthesisUtterance)return {spoken:false,reason:"unsupported"};
+ cancel();
+ const selected=pickVoice(p);
+ if(selected)return play(text,p,opts,selected);
+ // No início, getVoices() pode devolver [] e carregar depois. Nunca use
+ // a voz padrão do sistema nesse momento: ela pode ser de outra pessoa.
+ if(typeof root.setTimeout!=="function"){
+   if(typeof opts.onError==="function")opts.onError();
+   return {spoken:false,reason:"voice-unavailable"};
+ }
+ pendingSpeech={text,profile:p,options:opts,attempts:0};
+ ensureVoicesListener();
+ pendingTimer=root.setTimeout(retryPending,180);
+ return {spoken:false,reason:"voices-loading"};
+}
+function reset(){cancel();used.clear();assignedVoices.clear();lastText="";lastVoiceName="";}
+function inspect(){return {available:voices().map(v=>({name:v.name,lang:v.lang,local:v.localService})),assigned:[...assignedVoices].map(([name,data])=>({name,voiceURI:data.voiceURI,gender:data.gender})),waiting:!!pendingSpeech,lastVoiceName,lastText};}
 root.HannaVoice={profile,request,feedback,pickVoice,speak,cancel,reset,inspect,bank,pronunciation,setPronunciation,setVoicePreference,getPreferences,availableVoices,aliases};
 })(window);
