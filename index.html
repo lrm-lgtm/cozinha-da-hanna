@@ -260,12 +260,16 @@ function voiceSettings(){
  for(const gender of ['female','male']){
    $('voice-'+gender).onchange=e=>kit.setVoicePreference(gender,e.target.value);
  }
- const female=S.guests.find(g=>['Nina','Sofia','Bia','Lili'].includes(g[0]))?.[0]||'Sofia';
- const male=S.guests.find(g=>['Theo','Davi','Pedro'].includes(g[0]))?.[0]||'Theo';
- const probe=(name)=>kit.speak('Que comida maravilhosa, Chefe Hanna! Você arrasou na cozinha!',kit.profile(name,0),{enabled:true});
- $('tryPronunciation').onclick=()=>probe(female);
- $('tryFemale').onclick=()=>probe(female);
- $('tryMale').onclick=()=>probe(male);
+ // Provas usam identidade separada, não mudam a voz do cliente em atendimento.
+ const probe=(gender)=>{
+  const p=kit.profile(gender==='male'?'Teste masculino':'Teste feminino',gender==='male'?1:0);
+  p.gender=gender;
+  const result=kit.speak('Que comida maravilhosa, Chefe Hanna! Você arrasou na cozinha!',p,{enabled:true,onError:()=>snack('Esta voz não está disponível. Experimente outra opção.',true)});
+  if(result.reason==='voices-loading')snack('Preparando a voz de teste...');
+ };
+ $('tryPronunciation').onclick=()=>probe('female');
+ $('tryFemale').onclick=()=>probe('female');
+ $('tryMale').onclick=()=>probe('male');
  $('saveVoiceSettings').onclick=()=>{kit.cancel();hide();};
 }
 function dish(){return dishes[order()[0]];}
@@ -274,8 +278,9 @@ function sfx(kind){if(!S.sound)return;try{if(!audio)audio=new (window.AudioConte
 function say(text){
  if(!S.sound)return;
  const p=window.HannaVoice.profile(S.guests[S.round][0],S.round);
- const result=window.HannaVoice.speak(text,p,{enabled:S.sound});
+ const result=window.HannaVoice.speak(text,p,{enabled:S.sound,onError:()=>snack('A voz deste cliente não está disponível no navegador. Abra 🎙 para escolher outra.',true)});
  if(result.reason==='unsupported')snack('Seu navegador não oferece leitura em voz alta.',true);
+ if(result.reason==='voices-loading')snack('Carregando a voz deste cliente...');
 }
 function speak(){say(S.activeRequest||order()[2]);}
 function rating(){
