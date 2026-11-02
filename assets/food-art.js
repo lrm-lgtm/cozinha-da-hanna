@@ -35,9 +35,59 @@ frutas:'<path d="M9 47h82q-4 42-41 42-37 0-41-42Z" fill="#e0e9e5" stroke="#9db4a
 };
 function svg(path,kind){let source=(kind==='dish'?D[idSafe(path)]:P[idSafe(path)]);if(!source)return '';return '<svg class="food-art '+(kind==='dish'?'dish-art':'')+'" viewBox="0 0 100 100" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">'+defs+source+'</svg>';}
 function idSafe(s){return String(s||'').replace(/[^a-z_]/g,'');}
-function person(index){
-const skin=['#c88662','#edb692','#ad704d','#e7ad89','#d49b76','#b87b5a'][index%6],hair=['#54372e','#362a25','#754b2e','#422d32','#61412e','#2e2830'][index%6],shirt=['#6888ad','#cc8b78','#78a694','#a789b9','#d1a051','#738c7d'][index%6];
-return '<svg class="person-art" viewBox="0 0 150 170" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><ellipse cx="75" cy="159" rx="55" ry="7" fill="#947358" opacity=".14"/><path d="M28 157q1-54 47-54t47 54" fill="'+shirt+'"/><path d="M66 97v19q10 15 19 0V97" fill="'+skin+'"/><ellipse cx="75" cy="63" rx="43" ry="49" fill="'+skin+'"/><path d="M32 64q-10-52 40-55 51 0 46 51-11-24-21-29-19 15-42 9Q37 55 32 64Z" fill="'+hair+'"/><path d="M46 67q9-5 17 1m23-1q10-6 18 1" fill="none" stroke="'+hair+'" stroke-width="3" stroke-linecap="round"/><circle cx="57" cy="73" r="3.5" fill="#332a27"/><circle cx="95" cy="73" r="3.5" fill="#332a27"/><path d="M69 90q6 7 14 0" fill="none" stroke="#964d48" stroke-width="3" stroke-linecap="round"/><ellipse cx="44" cy="85" rx="8" ry="4" fill="#e4887f" opacity=".38"/><ellipse cx="106" cy="85" rx="8" ry="4" fill="#e4887f" opacity=".38"/><path d="M75 111v43" stroke="#fff" opacity=".33" stroke-width="2"/></svg>';
+function person(index,name){
+ const characters=[
+  {name:"Nina",skin:"#bc7d5f",hair:"#39282b",shirt:"#a56d8b",cut:0,acc:"earrings"},
+  {name:"Sofia",skin:"#d5a078",hair:"#3b2726",shirt:"#b76c66",cut:1,acc:"ribbon"},
+  {name:"Theo",skin:"#ad7759",hair:"#302a29",shirt:"#668b84",cut:2,acc:"glasses"},
+  {name:"Bia",skin:"#986247",hair:"#25232a",shirt:"#8b79a2",cut:3,acc:"earrings"},
+  {name:"Lili",skin:"#e2b38b",hair:"#9c653c",shirt:"#c28b64",cut:4,acc:"headband"},
+  {name:"Davi",skin:"#9b694d",hair:"#392f28",shirt:"#71879f",cut:5,acc:"none"},
+  {name:"Pedro",skin:"#c18d64",hair:"#5c3f33",shirt:"#679b88",cut:6,acc:"glasses"}
+ ];
+ const c=characters.find(v=>v.name===name)||characters[index%characters.length];
+ const n=characters.findIndex(v=>v.name===c.name),id="hannaPerson"+n;
+ const haircuts=[
+  '<path d="M55 143Q28 48 97 31 184 14 189 127l-12 60-15-33-8-66Q114 108 75 92l-10 67Z" fill="HAIR"/>',
+  '<path d="M47 151Q21 79 59 43q34-29 86-9 45 20 44 91l-22 16-8-62Q131 96 85 81q-19 21-28 70Z" fill="HAIR"/><path d="M175 138q17 45 6 87" stroke="HAIR" stroke-width="23" stroke-linecap="round"/>',
+  '<path d="M55 125q-9-46 19-76 22-26 66-19 47 7 52 65l-15 28-12-43q-38-3-63-14-16 17-37 16Z" fill="HAIR"/><path d="M69 52q34-33 80-8" stroke="#fff" stroke-opacity=".12" stroke-width="8" fill="none"/>',
+  '<path d="M46 141Q17 55 70 27 100 6 126 30q35-17 59 22 24 46-3 122l-18-26-4-61Q108 107 73 86l-13 74Z" fill="HAIR"/><path d="M59 142q-16 62 4 90M178 136q22 51 1 91" stroke="HAIR" stroke-width="23" fill="none"/>',
+  '<path d="M52 131Q25 58 76 31q56-35 103 16 19 28 5 89l-24-39-29-21-52 23-20 52Z" fill="HAIR"/><path d="M55 154q-15 50-2 78" stroke="HAIR" stroke-width="21" fill="none"/>',
+  '<path d="M49 116Q27 70 58 43q36-32 82-11 50 15 47 82l-23-37q-44 14-78-5l-21 43Z" fill="HAIR"/><path d="M68 62q30-29 65-10" stroke="#fff" stroke-opacity=".13" stroke-width="8" fill="none"/>',
+  '<path d="M50 132Q25 59 76 30q39-22 77 6 47 25 36 96l-18-22-7-34Q115 94 78 78l-14 54Z" fill="HAIR"/><path d="M66 55q32-32 71-16" stroke="#ffffff" stroke-opacity=".15" stroke-width="7" fill="none"/>'
+ ];
+ const hairstyle=haircuts[c.cut].replace(/HAIR/g,c.hair);
+ const extras={
+  earrings:'<circle cx="63" cy="165" r="4" fill="#e9c66d"/><circle cx="177" cy="165" r="4" fill="#e9c66d"/>',
+  ribbon:'<path d="M174 81q18-15 19 7l-17 3q0 23-17 7l10-17Z" fill="#edaaa0"/><circle cx="173" cy="89" r="6" fill="#fff0c8"/>',
+  glasses:'<g fill="none" stroke="#544841" stroke-width="4"><rect x="72" y="142" width="39" height="28" rx="12"/><rect x="131" y="142" width="39" height="28" rx="12"/><path d="M111 149q10-5 20 0M73 149l-13-3"/></g>',
+  headband:'<path d="M57 84Q119 12 175 86" fill="none" stroke="#e3be88" stroke-width="10" stroke-linecap="round"/>',
+  none:''
+ };
+ return '<svg class="person-art" viewBox="0 0 240 320" role="img" aria-label="Ilustração do cliente '+c.name+'" xmlns="http://www.w3.org/2000/svg"><defs>'+
+ '<linearGradient id="'+id+'skin" x2=".8" y2="1"><stop stop-color="'+c.skin+'"/><stop offset=".50" stop-color="'+c.skin+'"/><stop offset="1" stop-color="#8e5c49"/></linearGradient>'+
+ '<linearGradient id="'+id+'shirt" x2=".25" y2="1"><stop stop-color="'+c.shirt+'"/><stop offset="1" stop-color="#384e59"/></linearGradient>'+
+ '<linearGradient id="'+id+'shine" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#fff4e2" stop-opacity=".25"/><stop offset="1" stop-color="#30211c" stop-opacity=".08"/></linearGradient>'+
+ '</defs>'+
+ '<ellipse cx="120" cy="307" rx="88" ry="9" fill="#504037" opacity=".15"/>'+
+ '<path d="M25 310q6-71 31-100 17-21 64-23 45 2 65 22 28 31 32 101Z" fill="url(#'+id+'shirt)" stroke="#ece2d1" stroke-width="3"/>'+
+ '<path d="M52 217q-25 29-25 67M187 218q23 28 24 66" fill="none" stroke="'+c.skin+'" stroke-width="23" stroke-linecap="round"/>'+
+ '<path d="M93 197v23q25 27 53 0v-23" fill="url(#'+id+'skin)"/>'+
+ '<ellipse cx="120" cy="143" rx="66" ry="79" fill="url(#'+id+'skin)" stroke="#935e49" stroke-opacity=".19" stroke-width="2"/>'+
+ '<ellipse cx="58" cy="157" rx="13" ry="19" fill="'+c.skin+'"/><ellipse cx="181" cy="157" rx="13" ry="19" fill="'+c.skin+'"/>'+
+ '<path d="M61 158q-10 14 4 20M179 158q10 14-4 20" stroke="#885643" stroke-opacity=".34" fill="none" stroke-width="3"/>'+
+ hairstyle+extras[c.acc]+
+ '<path d="M75 135q14-8 29-3M137 131q16-8 29 2" stroke="'+c.hair+'" stroke-width="5" stroke-linecap="round" fill="none"/>'+
+ '<path d="M79 152q12-10 25 1M137 151q12-10 25 0" fill="none" stroke="#fff3e0" stroke-opacity=".25" stroke-width="2"/>'+
+ '<ellipse cx="92" cy="154" rx="6" ry="7" fill="#332824"/><ellipse cx="149" cy="154" rx="6" ry="7" fill="#332824"/>'+
+ '<circle cx="94" cy="151" r="2" fill="#fff"/><circle cx="151" cy="151" r="2" fill="#fff"/>'+
+ '<path d="M120 155q-7 18-4 26 6 4 12 0" stroke="#7e493a" stroke-opacity=".5" stroke-width="3" stroke-linecap="round" fill="none"/>'+
+ '<ellipse cx="74" cy="175" rx="15" ry="8" fill="#f2a094" opacity=".22"/><ellipse cx="165" cy="175" rx="15" ry="8" fill="#f2a094" opacity=".22"/>'+
+ '<path d="M106 196q15 10 29-2" fill="none" stroke="#8e4d4a" stroke-width="4" stroke-linecap="round"/>'+
+ '<path d="M95 217q25 30 50 0" fill="none" stroke="#fff5e2" stroke-opacity=".6" stroke-width="7"/>'+
+ '<path d="M36 309q1-61 32-96" fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width="10" stroke-linecap="round"/>'+
+ '<path d="M24 310q4-62 32-100 16-19 64-21 50 1 68 23 23 29 29 98Z" fill="url(#'+id+'shine)" opacity=".8"/>'+
+ '</svg>';
 }
 window.FoodArt={ingredient:id=>svg(id,'ingredient'),dish:id=>svg(id,'dish'),person:person};
 })();
