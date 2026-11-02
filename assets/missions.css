@@ -185,3 +185,11 @@ h1,h2,h3,h4{font-family:'Baloo 2',system-ui,sans-serif;line-height:1.13}
 }
 @media(max-width:380px){.topbar h1{font-size:18px}.mission-grid{gap:5px}.workdisc{height:min(155px,28dvh,92%)}.ingredient{min-height:49px}.ingredient svg{width:25px;height:25px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Preparo em camadas: alimento ilustrado, gesto e avanço. */
+.workdisc.premix{isolation:isolate;background:radial-gradient(circle at 37% 26%,#fae4bb,#dbac72 66%,#ad8257)}
+.workdisc.premix .prep-sprite{position:absolute;inset:20%;z-index:3;display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 9px 7px #69452240)}
+.workdisc.premix .prep-sprite svg{width:100%;height:100%;max-width:none;max-height:none}
+.workdisc.premix .gesture{position:absolute;right:12%;top:13%;z-index:5;background:#fcf3dd;border:2px solid #e6d7b3;color:#ab8552;border-radius:50%;width:44px;height:44px;display:grid;place-items:center;font-family:'Baloo 2';font-size:31px;pointer-events:none;box-shadow:0 3px 0 #ccae7f}
+.workdisc.premix .prep-ring{font-size:12px;min-width:55px;text-align:center}
+@media(max-width:720px){.workdisc.premix .gesture{width:31px;height:31px;right:8%;top:9%;font-size:22px}}
