@@ -41,7 +41,7 @@
  if(debug.getState().phase!==2)fail('Não abriu chapa');
  d.getElementById('mainAction').click();
  await wait(2600);
- if(!debug.getState().grill>=50)fail('Chapa não aqueceu');
+ if(debug.getState().grill<50)fail('Chapa não aqueceu');
  if(!d.getElementById('mainAction').textContent.includes('Virar'))fail('A virada não foi exigida');
  d.getElementById('mainAction').click();
  if(debug.getState().flipped!==true)fail('Não virou carne');
