@@ -1,85 +1,103 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Teste Hambúrguer 2.5D</title>
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Teste Hambúrguer 2.5D v2</title>
 <body><pre id="result">RUNNING</pre><iframe id="game" src="../prototype/burger/" style="width:390px;height:844px;border:0"></iframe>
 <script>
 (async()=>{
  const out=document.getElementById('result'),iframe=document.getElementById('game');
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
- const fail=(msg)=>{out.textContent='FAIL: '+msg;throw Error(msg);};
+ const fail=msg=>{out.textContent='FAIL: '+msg;throw Error(msg);};
  await new Promise((ok,no)=>{iframe.onload=ok;iframe.onerror=no;});
  const d=iframe.contentDocument,w=iframe.contentWindow;
- w.onerror=(m,src,line)=>fail('Erro JavaScript: '+m+' em '+line);
+ w.onerror=(m,src,line)=>fail('Erro JS: '+m+' em '+line);
  const debug=w.BurgerPrototypeDebug,canvas=d.getElementById('scene');
- if(!debug||!canvas||!d.getElementById('mainAction'))fail('Abertura incompleta');
- d.getElementById('soundToggle').click(); // Sem voz/som durante o CI.
+ if(!debug||!canvas||!d.getElementById('mainAction'))fail('Protótipo incompleto');
+ d.getElementById('soundToggle').click();
  await wait(250);
- if(!debug.sceneReady())fail('Canvas não foi inicializado');
- const colors=()=>{const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
-  let sum=0,opaque=0;for(let i=0;i<data.length;i+=113*4){sum=(sum+data[i]*3+data[i+1]*5+data[i+2]*7)>>>0;if(data[i+3]>0)opaque++;}return {sum,opaque};};
- const raw=colors();
- if(raw.opaque<80)fail('Desenho da carne/tábua não renderizou');
+ if(!debug.sceneReady())fail('Canvas não inicializado');
+ const get=()=>debug.getState();
+ const waitFor=async(check,msg,timeout=5500)=>{
+  const start=performance.now();
+  while(performance.now()-start<timeout){
+   if(check())return;
+   await wait(60);
+  }
+  fail(msg+' | '+JSON.stringify(get()));
+ };
+ const colors=()=>{
+  const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+  let sum=0,opaque=0;
+  for(let i=0;i<data.length;i+=113*4){
+   sum=(sum+data[i]*3+data[i+1]*5+data[i+2]*7)>>>0;
+   if(data[i+3]>0)opaque++;
+  }
+  return {sum,opaque};
+ };
  const tap=(el,id)=>{
-  const r=el.getBoundingClientRect(),x=r.left+r.width*.50,y=r.top+r.height*.52;
+  const r=el.getBoundingClientRect(),x=r.left+r.width*.5,y=r.top+r.height*.52;
   el.dispatchEvent(new w.PointerEvent('pointerdown',{pointerId:id,pointerType:'touch',isPrimary:true,bubbles:true,clientX:x,clientY:y,buttons:1}));
   el.dispatchEvent(new w.PointerEvent('pointerup',{pointerId:id,pointerType:'touch',isPrimary:true,bubbles:true,clientX:x,clientY:y,buttons:0}));
  };
- function noScroll(stage){
+ const noScroll=stage=>{
   const root=d.documentElement,shell=d.getElementById('shell'),body=d.body;
-  if(root.scrollHeight>root.clientHeight+2)fail('Scroll root '+stage+' '+root.scrollHeight+'/'+root.clientHeight);
-  if(body.scrollHeight>body.clientHeight+2)fail('Scroll body '+stage+' '+body.scrollHeight+'/'+body.clientHeight);
-  if(shell.scrollHeight>shell.clientHeight+2)fail('Scroll shell '+stage+' '+shell.scrollHeight+'/'+shell.clientHeight);
- }
- noScroll('início');
+  if(root.scrollHeight>root.clientHeight+2)fail('Scroll root em '+stage);
+  if(body.scrollHeight>body.clientHeight+2)fail('Scroll body em '+stage);
+  if(shell.scrollHeight>shell.clientHeight+2)fail('Scroll shell em '+stage);
+ };
+ const raw=colors();
+ if(raw.opaque<80)fail('Desenho inicial não renderizou');
+ noScroll('primeira etapa');
+ // Modelagem feita por interação real; jamais clicar no botão de avanço.
  for(let i=1;i<=6;i++)tap(canvas,i);
- if(debug.getState().effort!==100)fail('Modelagem da carne não progrediu: '+debug.getState().effort);
- d.getElementById('mainAction').click();
- if(debug.getState().phase!==1)fail('Não avançou para o corte');
- for(let i=10;i<14;i++)tap(canvas,i);
- if(debug.getState().cuts!==4)fail('Não cortou o tomate');
- const sliced=colors();
- if(Math.abs(sliced.sum-raw.sum)<2000)fail('A ilustração não mudou após os cortes');
- d.getElementById('mainAction').click();
- if(debug.getState().phase!==2)fail('Não abriu chapa');
- d.getElementById('mainAction').click();
- await wait(2600);
- if(debug.getState().grill<50)fail('Chapa não aqueceu');
- if(!d.getElementById('mainAction').textContent.includes('Virar'))fail('A virada não foi exigida');
- d.getElementById('mainAction').click();
- if(debug.getState().flipped!==true)fail('Não virou carne');
- await wait(2550);
- if(debug.getState().grill<99)fail('Grelhado não completou');
- d.getElementById('mainAction').click();
- if(debug.getState().phase!==3)fail('Não chegou na montagem');
- noScroll('montagem');
- // Arrastar a carne desde o painel até o prato; demais ingredientes por toque.
- const carne=d.querySelector('[data-food="carne"]');
- const r=carne.getBoundingClientRect(),pr=canvas.getBoundingClientRect();
- const x=r.left+r.width/2,y=r.top+r.height/2,px=pr.left+pr.width/2,py=pr.top+pr.height/2;
- carne.dispatchEvent(new w.PointerEvent('pointerdown',{pointerId:130,pointerType:'touch',isPrimary:true,bubbles:true,clientX:x,clientY:y,buttons:1}));
- d.dispatchEvent(new w.PointerEvent('pointermove',{pointerId:130,pointerType:'touch',bubbles:true,clientX:px,clientY:py,buttons:1}));
- d.dispatchEvent(new w.PointerEvent('pointerup',{pointerId:130,pointerType:'touch',bubbles:true,clientX:px,clientY:py,buttons:0}));
- if(!debug.getState().ingredients.includes('carne'))fail('Arrastar carne até o prato falhou');
- for(const id of ['queijo','tomate','alface']){
-  const item=d.querySelector('[data-food="'+id+'"]');
-  if(!item||item.disabled)fail('Ingrediente indisponível: '+id);
-  item.click();
+ if(get().effort!==100)fail('Modelagem não terminou');
+ if(get().autoPhase!==0)fail('Modelagem finalizada não agendou avanço automático');
+ if(!d.getElementById('mainAction').disabled)fail('Botão manual não foi desabilitado');
+ await waitFor(()=>get().phase===1,'Não avançou automaticamente para cortar',3200);
+ // A faca deve ser visivelmente mais lenta: golpes enfileirados são ignorados.
+ if(get().knifeDuration<750)fail('Duração da faca insuficiente');
+ tap(canvas,11);
+ if(!get().cutting||get().cuts!==0)fail('Golpe deveria estar animando');
+ tap(canvas,12);
+ await wait(280);
+ if(get().cuts!==0||!get().cutting)fail('Golpe cortou rápido demais');
+ await waitFor(()=>get().cuts===1,'Primeiro corte não concluiu',1800);
+ for(let i=2;i<=4;i++){
+  tap(canvas,20+i);
+  await waitFor(()=>get().cuts===i,'Corte '+i+' não concluiu',1700);
  }
- await wait(850);
- if(debug.getState().ingredients.length!==4)fail('Montagem não recebeu quatro ingredientes');
+ if(get().cuts!==4)fail('Não completou os quatro cortes');
+ await waitFor(()=>get().phase===2,'Não entrou automaticamente na chapa',2700);
+ if(!get().heating)fail('Chapa não acendeu automaticamente');
+ await waitFor(()=>get().waitingFlip,'O jogo não pediu para virar a carne',4200);
+ tap(canvas,32); // Virada por gesto na chapa, sem botão de próximo.
+ if(!get().flipped)fail('Toque não virou a carne');
+ await waitFor(()=>get().phase===3,'Não avançou automaticamente ao terminar o grelhado',5200);
+ noScroll('montagem');
+ if(!d.querySelector('[data-food="carne"]'))fail('Ingredientes da montagem ausentes');
+ // Extras continuam possíveis antes do último ingrediente obrigatório.
+ const extra=d.querySelector('[data-food="pepino"]');extra.click();
+ // Escolhemos propositadamente a ordem diferente do empilhamento físico.
+ for(const id of ['tomate','alface','queijo','carne']){
+  const b=d.querySelector('[data-food="'+id+'"]');
+  if(!b||b.disabled)fail('Ingrediente não disponível: '+id);
+  b.click();
+ }
+ if(get().ingredients.length!==5||get().autoPhase!==3)fail('Montagem não foi reconhecida como pronta');
+ await wait(300);
  const assembled=colors();
- if(Math.abs(assembled.sum-sliced.sum)<2000)fail('Imagem da montagem não mudou');
- d.getElementById('mainAction').click();
- if(debug.getState().phase!==4)fail('Não fechou hambúrguer');
- await wait(900);
- d.getElementById('mainAction').click();
- if(d.getElementById('overlay').hidden)fail('Avaliação não apareceu');
- if(!debug.getState().finished||debug.getState().rating?.good!==4)fail('Avaliação incorreta');
- if(debug.getState().rating.score<85)fail('Prato completo recebeu nota baixa');
+ if(Math.abs(assembled.sum-raw.sum)<2000)fail('Composição do prato não mudou');
+ await waitFor(()=>get().phase===4,'Hambúrguer não fechou automaticamente',2600);
+ if(!d.getElementById('mainAction').disabled)fail('Etapa de servir exige clique, deveria ser automática');
+ await waitFor(()=>get().finished,'Prato não foi servido automaticamente',3400);
+ if(d.getElementById('overlay').hidden)fail('Avaliação final não apareceu');
+ if(get().rating.good!==4||get().rating.extra!==1)fail('Acertos e ingredientes extras incorretos');
+ if(!d.getElementById('modalText').textContent)fail('Fala do cliente ausente');
  d.getElementById('playAgain').click();
- if(debug.getState().phase!==0||debug.getState().finished)fail('Reinício não funcionou');
+ if(get().phase!==0||get().finished)fail('Reiniciar não funcionou');
+ await wait(300);
+ if(get().phase!==0)fail('Timer antigo afetou nova rodada');
  for(const [width,height] of [[360,640],[375,667],[390,844],[430,932],[1180,820],[1366,768]]){
   iframe.style.width=width+'px';iframe.style.height=height+'px';
-  await wait(70);noScroll(width+'x'+height);
+  await wait(90);noScroll(width+'x'+height);
  }
- out.textContent='PASS: hambúrguer visual 2.5D, modelagem, corte animado, virada na chapa, arrasto, camadas, avaliação e 6 tamanhos sem scroll';
+ out.textContent='PASS: hambúrguer visual 2.5D, faca lenta, transições automáticas, grelha, camadas realistas, avaliação e 6 viewports sem scroll';
 })().catch(e=>document.getElementById('result').textContent='FAIL: '+(e.stack||e));
 </script></body></html>
