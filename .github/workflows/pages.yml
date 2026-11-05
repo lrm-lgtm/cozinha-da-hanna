@@ -79,6 +79,31 @@ jobs:
           fi
           echo "Link antigo redireciona para o restaurante original."
 
+      - name: Validar protótipo de hambúrguer no Chrome
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),vm=require('node:vm');
+          const path='prototype/burger/';
+          const html=fs.readFileSync(path+'index.html','utf8');
+          const js=fs.readFileSync(path+'burger.js','utf8');
+          new vm.Script(js,{filename:'burger.js'});
+          if(!html.includes('burger.css')||!html.includes('burger.js'))throw Error('Protótipo incompleto');
+          if(!html.includes('../../assets/voice-engine.js'))throw Error('Voz do cliente não integrada');
+          const original=fs.readFileSync('index.html','utf8');
+          if(!original.includes('function missionMenu()'))throw Error('Restaurante original não preservado');
+          NODE
+          python3 -m http.server 8899 --bind 127.0.0.1 >/tmp/burger-http.log 2>&1 &
+          CHROME=$(command -v google-chrome || command -v chromium || true)
+          if [ -z "$CHROME" ]; then echo "Chrome não encontrado"; exit 1; fi
+          timeout 75s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=26000 --dump-dom http://127.0.0.1:8899/tests/burger-smoke.html > /tmp/burger-smoke-result.html 2>/tmp/burger-chrome.log
+          if ! grep -q "PASS: hambúrguer visual 2.5D" /tmp/burger-smoke-result.html; then
+            echo "Teste do hambúrguer falhou:"
+            sed -n '/<pre id="result">/,/<\\/pre>/p' /tmp/burger-smoke-result.html | head -n 40 || true
+            tail -n 18 /tmp/burger-chrome.log || true
+            exit 1
+          fi
+          echo "Protótipo isolado: preparo, cortes, chapa, montagem, avaliação e responsividade aprovados."
+
   deploy:
     needs: verificar
     runs-on: ubuntu-latest
