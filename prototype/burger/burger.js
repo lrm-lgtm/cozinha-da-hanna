@@ -496,7 +496,7 @@ function pointerDown(e){
  if(st.phase===0||st.phase===1){
   const p=point(e);if(!inBounds(p))return;
   st.drag={type:"work",id:e.pointerId,last:p,travel:0};
-  canvas.setPointerCapture?.(e.pointerId);
+  try{canvas.setPointerCapture?.(e.pointerId)}catch(err){}
   if(st.phase===0)shapeAt(p);else cutAt(p);
  }
 }
