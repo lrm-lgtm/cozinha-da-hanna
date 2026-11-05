@@ -266,7 +266,18 @@ function drawSparkle(x,y,t){
  ctx.fillStyle="#fff3b1";ctx.beginPath();ctx.moveTo(0,-14);ctx.quadraticCurveTo(5,-3,13,0);ctx.quadraticCurveTo(2,5,0,13);ctx.quadraticCurveTo(-4,2,-13,0);ctx.quadraticCurveTo(-3,-3,0,-14);ctx.fill();
  ctx.restore();
 }
+function drawCeramicPlate(){
+ ctx.save();
+ withShadow(()=>ellipse(360,410,215,79,"#dce5dc"),"#313b3355",23,17);
+ ellipse(360,398,209,72,linear(165,360,560,465,"#fffefb","#e5eee4","#d2ded6"));
+ ellipse(360,396,178,57,"#f9fbf5");
+ ctx.beginPath();ctx.ellipse(360,396,168,49,0,0,TAU);
+ ctx.strokeStyle="#e5ece4";ctx.lineWidth=4;ctx.stroke();
+ ellipse(359,410,135,25,"#5f483d1b");
+ ctx.restore();
+}
 function drawAssembly(){
+ drawCeramicPlate();
  drawBunBottom(360,372);
  let level=346;
  for(let i=0;i<st.ingredients.length;i++){
@@ -306,7 +317,7 @@ function renderCut(){
  const slices=st.cuts;
  drawTomato(360,238,slices,1);
  // Knife moves with each cut, metallic reflections
- const animation=safe((performance.now()-st.lastCutAt)/300,0,1);
+ const animation=st.lastCutAt?safe((performance.now()-st.lastCutAt)/300,0,1):1;
  const knifeY=175+Math.sin(animation*Math.PI)*95;
  ctx.save();ctx.translate(485,knifeY);ctx.rotate(-.35);
  withShadow(()=>roundRect(-12,-123,23,146,[5,5,8,8],linear(-11,-123,11,15,"#fefef6","#b4bfba","#7d8b88")),"#53452e30",6,3);
