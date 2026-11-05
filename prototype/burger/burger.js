@@ -61,14 +61,25 @@ function withShadow(fn,color,blur,y){
  ctx.save();shadow(color,blur,y);fn();ctx.restore();
 }
 function drawEnvironment(t){
- // The CSS owns the wall and worktop. Canvas adds shadows and diffuse light.
  ctx.save();
  ellipse(360,410,235,46,"#5e46332b");
  ellipse(357,414,200,27,"#47342617");
- // light falling on the work surface
- const glow=ctx.createRadialGradient(320,180,1,345,260,390);
- glow.addColorStop(0,"#ffffff33");glow.addColorStop(1,"#ffffff00");
+ const glow=ctx.createRadialGradient(290,115,1,330,260,445);
+ glow.addColorStop(0,"#fffdf657");glow.addColorStop(1,"#fff8e500");
  ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+ // Cozinha ao fundo: utensílios próprios, com cores discretas.
+ // Aparecem nas bordas e não roubam atenção do alimento.
+ roundRect(48,58,128,14,7,linear(48,58,175,72,"#a88767","#755a46","#4e3c30"));
+ for(let i=0;i<3;i++){
+  const x=74+i*41;
+  line([[x,67],[x,105]],"#8b806f",4);
+  ellipse(x,108,9,11,"#b5aaa0");
+  ellipse(x,106,5,6,"#e2d9c9");
+ }
+ roundRect(584,60,82,94,13,linear(587,60,662,150,"#eee6d6","#d3bfa6","#a58d74"),"#e7dbca");
+ roundRect(598,82,20,46,5,linear(598,83,617,128,"#9bb28d","#61886c","#406b58"));
+ roundRect(628,78,21,50,5,linear(628,80,646,130,"#dab58d","#a17a55","#80583c"));
+ for(let i=0;i<3;i++){ellipse(607,77+i*2,8,2,"#d2be9a");ellipse(638,73+i*2,9,2,"#dac59f");}
  ctx.restore();
 }
 function drawBoard(){
@@ -85,14 +96,21 @@ function drawBoard(){
   ctx.strokeStyle=i%3===0?"#70493113":"#fff9e30c";ctx.lineWidth=i%4===0?3:1;ctx.stroke();
  }
  ctx.restore();
- roundRect(149,138,421,236,15,null,"#fff0d05b");
+ // O sulco interno da tábua traz profundidade e ajuda a definir a área de trabalho.
+ roundRect(150,138,418,234,15,null,"#8f66473a");
+ line([[165,162],[184,150],[550,150]],"#fff7dea3",3);
+ line([[159,351],[169,369],[538,373]],"#996e4b5b",3);
  ellipse(555,358,13,13,"#a2764d");
  ellipse(555,358,8,8,"#e5c49c");
+ // Marcas delicadas de uso: a bancada parece um material, não um quadrado plano.
+ for(let i=0;i<19;i++){
+  const x=180+rnd(i*7)*330,y=155+rnd(i*11+3)*204;
+  line([[x,y],[x+8+rnd(i)*12,y-2]],i%2?"#84583a21":"#fff1d42f",1.4);
+ }
  ctx.restore();
 }
 function drawMeat(x,y,grilled,flat,rotation=0){
  const t=safe(grilled,0,1);
- const raw=["#c86a68","#8c343a","#f7aaa4"],cooked=["#986046","#4d302b","#ce9872"];
  const outer=rgb([159,67,69],[94,51,38],t),inner=rgb([211,119,107],[153,94,63],t);
  const rw=lerp(87,150,flat),rh=lerp(67,43,flat);
  ctx.save();ctx.translate(x,y);ctx.rotate(rotation);
@@ -116,6 +134,13 @@ function drawMeat(x,y,grilled,flat,rotation=0){
   ctx.beginPath();ctx.moveTo(-rw*.72,yy);ctx.bezierCurveTo(-rw*.22,yy-10,rw*.35,yy+7,rw*.71,yy-7);
   ctx.strokeStyle=t>.2?"#5c392a"+(t>.7?"ba":"66"):"#922f4244";
   ctx.lineWidth=lerp(1,7,t);ctx.stroke();
+ }
+ // Textura de fibras e gordura: menos aparência de um disco liso.
+ for(let i=0;i<26;i++){
+  const a=rnd(i*8+6)*TAU,r=.2+Math.sqrt(rnd(i*13+8))*.64;
+  const xx=Math.cos(a)*rw*r,yy=Math.sin(a)*rh*r;
+  ctx.beginPath();ctx.moveTo(xx-6,yy-2);ctx.bezierCurveTo(xx-2,yy-7,xx+5,yy+3,xx+8,yy);
+  ctx.strokeStyle=t>.65?"#ebbf905e":"#ffc1ae78";ctx.lineWidth=t>.65?2.3:2.7;ctx.stroke();
  }
  ctx.restore();
  // golden fat or charred edge
@@ -195,6 +220,12 @@ function drawCheese(x,y,width=300){
  },"#55371920",6,3);
  ctx.beginPath();ctx.moveTo(-width*.43,-14);ctx.lineTo(width*.42,-13);
  ctx.strokeStyle="#fff5c5bb";ctx.lineWidth=5;ctx.stroke();
+ // Pequenas curvas luminosas que parecem queijo realmente derretendo.
+ for(let i=0;i<4;i++){
+  const xx=(-.32+i*.20)*width;
+  ctx.beginPath();ctx.moveTo(xx,6);ctx.bezierCurveTo(xx-7,19,xx+9,28,xx+4,36);
+  ctx.strokeStyle="#ffef9f9a";ctx.lineWidth=3;ctx.lineCap="round";ctx.stroke();
+ }
  ctx.restore();
 }
 function drawBunBottom(x,y,w=151){
@@ -219,11 +250,14 @@ function drawBunTop(x,y,w=153,progress=1){
  ctx.strokeStyle="#fff1ca76";ctx.lineWidth=13;ctx.lineCap="round";ctx.stroke();
  ellipse(0,15,w,18,"#d19a60");
  ellipse(0,17,w*.94,9,"#e4b37a");
- for(let i=0;i<22;i++){
+ for(let i=0;i<34;i++){
   const a=rnd(i*19+22)*TAU,r=Math.sqrt(rnd(i*31+10));
-  const xx=Math.cos(a)*w*.78*r,yy=-70+Math.sin(a)*27*r+12*Math.pow(r,2);
+  const xx=Math.cos(a)*w*.78*r,yy=-72+Math.sin(a)*28*r+12*Math.pow(r,2);
   ellipse(xx,yy,5,2.8,"#fff0c4",rnd(i*3.9)*TAU);
  }
+ // Uma faixa de brilho para a crosta do pão, como acabamento assado.
+ ctx.beginPath();ctx.moveTo(-w*.65,-23);ctx.quadraticCurveTo(-w*.26,-88,w*.48,-38);
+ ctx.strokeStyle="#fff0bc60";ctx.lineWidth=6;ctx.lineCap="round";ctx.stroke();
  ctx.restore();
 }
 function drawPickle(x,y,r=40){
@@ -253,7 +287,17 @@ function drawSkillet(t){
  ellipse(0,28,195,116,"#242b26");
  ctx.save();ctx.beginPath();ctx.ellipse(0,28,195,116,0,0,TAU);ctx.clip();
  for(let i=0;i<9;i++){line([[-170,(-95+i*24)+28],[170,(-95+i*24)+28]],"#4d514a66",9);}
- if(st.heating){const gl=ctx.createRadialGradient(0,25,20,0,25,170);gl.addColorStop(0,"#c66e3334");gl.addColorStop(1,"#c66e3300");ctx.fillStyle=gl;ctx.fillRect(-202,-130,405,299);}
+ if(st.heating){const gl=ctx.createRadialGradient(0,25,20,0,25,170);gl.addColorStop(0,"#d8754538");gl.addColorStop(1,"#c66e3300");ctx.fillStyle=gl;ctx.fillRect(-202,-130,405,299);}
+ // Óleo brilhando no metal, com pequenas bolhas em movimento.
+ if(st.grill>0){
+  for(let i=0;i<21;i++){
+   const a=(rnd(i*4+9)*TAU)+Math.sin(frame*.018+i)*.02;
+   const rr=95+rnd(i*16+4)*90;
+   const xx=Math.cos(a)*rr,yy=28+Math.sin(a)*rr*.52;
+   const rad=1.5+rnd(i*9)*3+(st.heating?Math.abs(Math.sin(frame*.11+i))*1.8:0);
+   ellipse(xx,yy,rad,rad*.55,i%2?"#f9d5a46e":"#edc1954b");
+  }
+ }
  ctx.restore();
  ctx.restore();
 }
@@ -285,10 +329,16 @@ function drawAssembly(){
  drawCeramicPlate();
  drawBunBottom(360,372);
  let level=346;
- for(let i=0;i<st.ingredients.length;i++){
-  const id=st.ingredients[i];
+ // A ordem de preparo é livre, mas cada alimento ocupa sua camada física
+ // correta para o resultado parecer um hambúrguer de verdade.
+ const layers=["carne","queijo","tomate","alface","pepino","cebola"].filter(id=>st.ingredients.includes(id));
+ for(let i=0;i<layers.length;i++){
+  const id=layers[i];
   const t=id===st.lastFood?safe((performance.now()-st.foodAddedAt)/570,0,1):1;
   const y=level-((1-ease(t))*120),xx=360+Math.sin(i*2)*3;
+  if(id===st.lastFood&&t<1){
+   ellipse(xx,level+7,120+35*(1-t),10+8*(1-t),"rgba(88,63,42,"+(.13*(1-t)).toFixed(3)+")");
+  }
   ctx.save();
   if(id==="carne"){drawMeat(xx,y,.98,1);level-=41;}
   else if(id==="queijo"){drawCheese(xx,y,302);level-=27;}
@@ -359,6 +409,15 @@ function renderGrill(time){
  drawMeat(0,0,t,1,Math.sin(t*TAU)*.02);
  ctx.restore();
  drawSmoke(time,st.heating?1:.2);
+ // Reflexos de gordura ao redor do hambúrguer, discretos e animados.
+ if(st.heating&&st.grill>4){
+  for(let i=0;i<10;i++){
+   const a=i*TAU/10+Math.sin(frame*.045+i)*.13;
+   const x=360+Math.cos(a)*170,y=288+Math.sin(a)*83;
+   const r=2+Math.sin(frame*.12+i)*1.4;
+   ellipse(x,y,Math.max(.6,r),Math.max(.6,r*.5),"#f8c980ad");
+  }
+ }
  if(st.waitingFlip){
   ctx.save();roundRect(249,397,229,37,19,"#fff4d4e8","#efd5a6");ctx.fillStyle="#935d39";ctx.font="800 16px 'Outfit',sans-serif";ctx.textAlign="center";ctx.fillText("VIRE A CARNE",362,422);ctx.restore();
  }
@@ -470,6 +529,7 @@ function update(){
  $("toolTitle").textContent=d.tool;
  $("toolDescription").textContent=d.info;
  $("canvasHint").textContent=st.autoPhase===st.phase?"ETAPA CONCLUÍDA · AVANÇANDO...":st.cutting?"FACA CORTANDO · AGUARDE O MOVIMENTO":st.waitingFlip?"TOQUE NA CARNE OU NO BOTÃO PARA VIRAR":d.hint;
+ $("canvasHint").classList.toggle("auto",st.autoPhase===st.phase);
  document.querySelectorAll(".step").forEach((node,i)=>{
   node.classList.toggle("active",i===st.phase);
   node.classList.toggle("done",i<st.phase);
