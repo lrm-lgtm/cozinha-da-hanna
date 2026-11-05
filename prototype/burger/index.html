@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f2ecdf">
+  <meta name="description" content="Protótipo experimental de hambúrguer da Cozinha da Hanna.">
+  <title>Hambúrguer da Chef Hanna — Protótipo</title>
+  <link rel="stylesheet" href="burger.css">
+</head>
+<body>
+  <div class="shell" id="shell">
+    <header class="topbar">
+      <div class="branding">
+        <a class="return" href="../../index.html" aria-label="Voltar à Cozinha da Hanna">‹</a>
+        <div class="stamp" aria-hidden="true">CH</div>
+        <div class="brand-text">
+          <span class="kicker">COZINHA DA HANNA <i class="kicker-dot"></i> LABORATÓRIO</span>
+          <h1>O Hambúrguer da Chef</h1>
+        </div>
+      </div>
+      <div class="top-right">
+        <span class="prototype-tag"><span></span> PROTÓTIPO ISOLADO</span>
+        <button class="icon-button" id="soundToggle" type="button" title="Ativar ou desativar som" aria-label="Ativar ou desativar som">♫</button>
+      </div>
+    </header>
+
+    <div class="stepbar" id="stepbar" aria-label="Etapas da receita">
+      <span class="step active" data-step="0"><b>01</b> Modelar</span>
+      <span class="step" data-step="1"><b>02</b> Cortar</span>
+      <span class="step" data-step="2"><b>03</b> Grelhar</span>
+      <span class="step" data-step="3"><b>04</b> Montar</span>
+      <span class="step" data-step="4"><b>05</b> Servir</span>
+      <span class="bar-caption">RECEITA 01 · TESTE VISUAL</span>
+    </div>
+
+    <main class="layout">
+      <aside class="panel customer" aria-label="Pedido do cliente">
+        <div class="customer-intro">
+          <span class="eyebrow"><span class="online"></span> NO BALCÃO</span>
+          <h2>Pedido do Theo</h2>
+          <p>Um cliente, uma receita de verdade.</p>
+        </div>
+        <div class="portrait-wrap" id="portraitWrap">
+          <div class="portrait-backdrop"></div>
+          <div id="portrait" class="portrait"></div>
+          <div class="portrait-name"><span>CLIENTE</span><b>THEO</b></div>
+        </div>
+        <div class="request-card">
+          <span class="request-title">COMANDA #001</span>
+          <p>“Oi, Chef Hanna! Quero um hambúrguer com carne grelhada, queijo, tomate e alface.”</p>
+          <button type="button" class="listen" id="hearOrder"> <span aria-hidden="true">◖))</span> Ouvir o cliente</button>
+        </div>
+        <div class="rating-note"><span>✦</span> A apresentação, os ingredientes e o tempo influenciam a avaliação.</div>
+      </aside>
+
+      <section class="panel studio" aria-label="Bancada de preparo">
+        <div class="studio-header">
+          <div>
+            <span class="studio-label" id="stageCode">ETAPA 01 · PREPARAR</span>
+            <h2 id="stageTitle">Mãos na carne!</h2>
+            <p id="stageDescription">Arraste o dedo sobre a carne para modelar o hambúrguer.</p>
+          </div>
+          <span class="counter-badge" id="stageCount">01 / 05</span>
+        </div>
+        <div class="viewport" id="viewport">
+          <canvas id="scene" width="720" height="520" aria-label="Ilustração interativa do preparo de hambúrguer"></canvas>
+          <span class="scene-corner scene-corner-tl"></span>
+          <span class="scene-corner scene-corner-tr"></span>
+          <span class="scene-corner scene-corner-bl"></span>
+          <span class="scene-corner scene-corner-br"></span>
+          <div class="canvas-hint" id="canvasHint">DESLIZE SOBRE A CARNE PARA MODELAR</div>
+        </div>
+        <div class="scene-footer">
+          <div class="progress-area">
+            <span id="actionStatus">Modelagem <b id="actionPercent">0%</b></span>
+            <div class="progress-track"><div id="progressFill"></div></div>
+          </div>
+          <button type="button" class="primary" id="mainAction" disabled>Preparar carne <span>→</span></button>
+        </div>
+      </section>
+
+      <aside class="panel toolbox" aria-label="Ingredientes e ferramentas">
+        <div class="toolbox-header"><span class="eyebrow">SUA ESTAÇÃO</span><h2 id="toolTitle">Ingredientes</h2><p id="toolDescription">Os utensílios mudam conforme o preparo.</p></div>
+        <div class="tool-list" id="toolList"></div>
+        <div class="recipe-note" id="recipeNote">
+          <span class="recipe-label">NA RECEITA DE HOJE</span>
+          <div class="recipe-lines">
+            <span><b>✓</b> Carne</span><span><b>✓</b> Pão</span>
+            <span><b>✓</b> Queijo</span><span><b>✓</b> Tomate</span><span><b>✓</b> Alface</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="foot">
+      <span><i class="light"></i> Protótipo de um único prato — sem alterar o restaurante original</span>
+      <div class="foot-actions"><button type="button" class="small-button" id="restart">↺ Recomeçar</button></div>
+    </footer>
+  </div>
+  <div class="overlay" id="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div id="modalVisual" class="modal-visual"></div>
+      <div class="modal-eyebrow" id="modalEyebrow">PRATO SERVIDO</div>
+      <h2 id="modalTitle">Que delícia, Chef Hanna!</h2>
+      <p id="modalText"></p>
+      <div id="modalScore" class="modal-score"></div>
+      <div class="modal-actions">
+        <button type="button" class="small-button" id="hearFeedback">◖)) Ouvir avaliação</button>
+        <button type="button" class="primary" id="playAgain">Fazer de novo <span>↺</span></button>
+      </div>
+    </div>
+  </div>
+  <script src="../../assets/food-art.js"></script>
+  <script src="../../assets/voice-engine.js"></script>
+  <script src="burger.js"></script>
+</body>
+</html>
