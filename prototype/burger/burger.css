@@ -187,3 +187,15 @@ h1,h2,p{margin:0}h1,h2{font-family:'Outfit',sans-serif;letter-spacing:-.75px;lin
 .scene-footer{min-height:55px;padding:5px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+
+/* Protótipo v2: passagem automática com microfeedback visual. */
+.canvas-hint{transition:background .24s,color .24s,border-color .24s,box-shadow .24s;max-width:min(94%,430px);text-align:center}
+.canvas-hint.auto{background:#e2f0def2;color:#347650;border-color:#8fbd96;box-shadow:0 3px 0 #7eb38a55,0 0 0 4px #8fbd9625;animation:hint-ready .84s ease-in-out infinite alternate}
+@keyframes hint-ready{from{transform:translateX(-50%) scale(1);opacity:.91}to{transform:translateX(-50%) scale(1.035);opacity:1}}
+.primary.auto-transition{background:#7faa85;box-shadow:0 4px 0 #55775d;opacity:1}
+.step.done{transition:background .28s,color .28s}
+.step.done b{box-shadow:0 0 0 3px #b6d7ba48}
+.progress-track>div{box-shadow:0 0 7px #89ac78aa}
+.scene-footer{transition:background .25s}
+@media(prefers-reduced-motion:reduce){.canvas-hint.auto{animation:none}}
