@@ -22,7 +22,12 @@ const palette=[
  {id:"cebola",name:"Cebola",description:"Extra não pedido",good:false}
 ];
 const expected=["carne","queijo","tomate","alface"];
-let st={phase:0,effort:0,cuts:0,heating:false,grill:0,flipped:false,waitingFlip:false,flippingAt:0,ingredients:[],foodAddedAt:0,lastFood:null,drag:null,sound:true,activeSound:null,startedAt:performance.now(),finished:false,rating:null,lastLine:"",chefVoice:"Theo"};
+const KNIFE_DURATION=860;
+const PHASE_DELAY=700;
+function initialState(sound=true){
+ return {phase:0,effort:0,cuts:0,cutting:false,cutStartedAt:0,lastCutAt:0,cutTimer:null,autoTimer:null,autoPhase:-1,enteredAt:performance.now(),heating:false,grill:0,flipped:false,waitingFlip:false,flippingAt:0,ingredients:[],foodAddedAt:0,lastFood:null,drag:null,sound,activeSound:null,startedAt:performance.now(),finished:false,rating:null,lastLine:"",chefVoice:"Theo"};
+}
+let st=initialState();
 let logical={s:1,x:0,y:0};
 let prev=performance.now(),frame=0,shake=0,particles=[];
 const voice=window.HannaVoice;
@@ -314,17 +319,36 @@ function renderRawShape(){
 }
 function renderCut(){
  drawBoard();
- const slices=st.cuts;
- drawTomato(360,238,slices,1);
- // Knife moves with each cut, metallic reflections
- const animation=st.lastCutAt?safe((performance.now()-st.lastCutAt)/300,0,1):1;
- const knifeY=175+Math.sin(animation*Math.PI)*95;
- ctx.save();ctx.translate(485,knifeY);ctx.rotate(-.35);
- withShadow(()=>roundRect(-12,-123,23,146,[5,5,8,8],linear(-11,-123,11,15,"#fefef6","#b4bfba","#7d8b88")),"#53452e30",6,3);
- roundRect(-15,3,28,83,7,linear(-15,0,13,81,"#8e5a3a","#53372d","#392b27"));
- for(let i=0;i<3;i++)ellipse(-1,23+i*21,2.5,2.5,"#d0c3ad");
+ // O tomate mostra somente os cortes que a faca realmente concluiu.
+ drawTomato(360,248,st.cuts,1);
+ const elapsed=st.cutting?safe((performance.now()-st.cutStartedAt)/KNIFE_DURATION,0,1):0;
+ // Antecipação → descida lenta → pressão → retirada com breve pausa.
+ const down=elapsed<.15?0:elapsed<.63?ease((elapsed-.15)/.48):elapsed<.77?1:1-ease((elapsed-.77)/.23);
+ const wobble=st.cutting?Math.sin(elapsed*Math.PI)*.022:0;
+ const knifeX=264+st.cuts*59,knifeY=st.cutting?lerp(42,245,down):37;
+ ctx.save();ctx.translate(knifeX,knifeY);ctx.rotate(-.24+wobble);
+ // Lâmina larga com bisel em aço polido.
+ withShadow(()=>{
+  ctx.beginPath();ctx.moveTo(-31,-130);ctx.lineTo(28,-125);ctx.lineTo(20,11);ctx.quadraticCurveTo(0,31,-28,13);ctx.closePath();
+  ctx.fillStyle=linear(-31,-115,26,20,"#e4eae6","#b3c1bf","#697e7c");ctx.fill();
+ },"#362b2345",10,5);
+ ctx.beginPath();ctx.moveTo(-15,-121);ctx.lineTo(14,-116);ctx.lineTo(12,0);ctx.lineTo(-16,5);ctx.closePath();
+ ctx.fillStyle=linear(-15,-120,14,4,"#f9fbf6","#d1ded9","#8d9c99");ctx.fill();
+ line([[-29,13],[20,11]],"#f5faf5",3);
+ roundRect(-17,14,37,88,10,linear(-15,14,22,100,"#8b5b3e","#684b3a","#342e2b"),"#422a22");
+ roundRect(-10,24,9,69,5,"#a67e5a86");
+ for(let i=0;i<3;i++)ellipse(7,35+i*23,3.6,3.6,"#ddc8a8");
  ctx.restore();
- if(slices>=4)drawSparkle(235,184,frame*.015);
+ // Marcas curtas e discretas indicam o corte que está acontecendo.
+ if(st.cutting&&elapsed>.4&&elapsed<.80){
+  const alpha=safe((elapsed-.4)/.18,0,.7);
+  line([[knifeX-34,268],[knifeX-14,274]],"rgba(255,244,220,"+alpha+")",4);
+  for(let i=0;i<3;i++){
+   const a=elapsed*11+i*2.1;
+   ellipse(knifeX+Math.cos(a)*17,260+Math.sin(a)*8,3,2,"rgba(245,204,153,"+(alpha*.65)+")");
+  }
+ }
+ if(st.cuts>=4)drawSparkle(235,184,frame*.015);
 }
 function renderGrill(time){
  drawSkillet(time);
@@ -360,6 +384,12 @@ function render(timestamp){
  if(st.phase===3)drawAssembly();
  if(st.phase===4)renderServe();
  ctx.restore();
+ // Brilho discreto de transição sobre a própria bancada.
+ const entering=safe((performance.now()-st.enteredAt)/490,0,1);
+ if(entering<1){
+   ctx.fillStyle="rgba(255,250,227,"+((1-ease(entering))*.40).toFixed(3)+")";
+   ctx.fillRect(0,0,canvas.width,canvas.height);
+ }
  if(st.phase===2&&st.heating&&!st.waitingFlip&&!st.finished){
   const previous=st.grill;
   st.grill=safe(st.grill+dt*24.5,0,100);
@@ -368,7 +398,7 @@ function render(timestamp){
    update();
   }else if(st.grill>=100){
    st.grill=100;st.heating=false;st.waitingFlip=false;
-   update();sfx("done");
+   sfx("done");autoAdvance(2,970);
   }else if(frame%9===0)status();
  }
  requestAnimationFrame(render);
@@ -435,29 +465,62 @@ function update(){
  const d=stageDefs[st.phase];
  $("stageCode").textContent=d.label;
  $("stageTitle").textContent=d.title;
- $("stageDescription").textContent=d.desc;
+ $("stageDescription").textContent=st.autoPhase===st.phase?"Ótimo trabalho! A próxima etapa começa automaticamente.":d.desc;
  $("stageCount").textContent=String(st.phase+1).padStart(2,"0")+" / 05";
  $("toolTitle").textContent=d.tool;
  $("toolDescription").textContent=d.info;
- $("canvasHint").textContent=d.hint;
+ $("canvasHint").textContent=st.autoPhase===st.phase?"ETAPA CONCLUÍDA · AVANÇANDO...":st.cutting?"FACA CORTANDO · AGUARDE O MOVIMENTO":st.waitingFlip?"TOQUE NA CARNE OU NO BOTÃO PARA VIRAR":d.hint;
  document.querySelectorAll(".step").forEach((node,i)=>{
   node.classList.toggle("active",i===st.phase);
   node.classList.toggle("done",i<st.phase);
  });
  const btn=$("mainAction");
- btn.textContent=d.button;const arrow=document.createElement("span");arrow.textContent="→";btn.append(arrow);
- if(st.phase===0)btn.disabled=st.effort<100;
- if(st.phase===1)btn.disabled=st.cuts<4;
- if(st.phase===2){
-   btn.disabled=st.grill>0&&!st.waitingFlip&&st.grill<100;
-   if(st.grill===0)btn.textContent="Acender a chapa";
-   else if(st.waitingFlip)btn.textContent="Virar a carne";
-   else if(st.grill>=100)btn.textContent="Montar o lanche";
-   else btn.textContent="Grelhando…";
- }
- if(st.phase===3)btn.disabled=!st.ingredients.includes("carne");
- if(st.phase===4)btn.disabled=false;
+ const labels={
+  0:st.autoPhase===0?"Modelagem concluída ✓":"Modele a carne com o dedo",
+  1:st.autoPhase===1?"Tomate cortado ✓":st.cutting?"Cortando devagar...":"Corte o tomate com quatro toques",
+  2:st.waitingFlip?"Virar a carne":st.grill>=100?"Carne pronta ✓":"Grelhando na chapa...",
+  3:st.autoPhase===3?"Montagem concluída ✓":"Adicione os ingredientes ao pão",
+  4:"Entregando ao Theo..."
+ };
+ btn.textContent=labels[st.phase]||"Preparando...";
+ const arrow=document.createElement("span");arrow.textContent=st.autoPhase===st.phase?"✓":st.waitingFlip?"↻":"→";btn.append(arrow);
+ btn.disabled=!(st.phase===2&&st.waitingFlip);
+ btn.classList.toggle("auto-transition",st.autoPhase===st.phase);
  paintTools();status();
+}
+function clearTimers(){
+ if(st.cutTimer!=null)clearTimeout(st.cutTimer);
+ if(st.autoTimer!=null)clearTimeout(st.autoTimer);
+ st.cutTimer=null;st.autoTimer=null;st.cutting=false;st.autoPhase=-1;
+}
+function advancePhase(phase){
+ clearTimers();
+ st.drag=null;
+ st.phase=phase;st.enteredAt=performance.now();
+ if(phase===2){
+  // Entrando na chapa, ela começa a aquecer sozinha.
+  st.heating=true;st.grill=.1;sfx("sizzle");
+ }
+ if(phase===4){
+  st.serveAt=performance.now();
+  update();
+  autoAdvance(4,1930);
+  return;
+ }
+ update();
+ sfx("done");
+}
+function autoAdvance(phase,delay=PHASE_DELAY){
+ if(st.phase!==phase||st.finished||st.autoTimer!=null)return;
+ st.autoPhase=phase;
+ st.autoTimer=setTimeout(()=>{
+  st.autoTimer=null;
+  if(st.phase!==phase||st.finished)return;
+  st.autoPhase=-1;
+  if(phase===4)serve();
+  else advancePhase(phase+1);
+ },delay);
+ update();
 }
 let audioCtx=null;
 function sfx(kind){
@@ -477,45 +540,53 @@ function sfx(kind){
 }
 function voiceSpeak(text){if(voice){const res=voice.speak(text,voice.profile("Theo",1),{enabled:st.sound});if(res.reason==="voices-loading")$("canvasHint").textContent="CARREGANDO A VOZ DO THEO...";}}
 function next(){
- if(st.phase===0&&st.effort>=100){st.phase=1;sfx("done");}
- else if(st.phase===1&&st.cuts>=4){st.phase=2;sfx("done");}
- else if(st.phase===2){
-   if(st.grill===0){st.heating=true;st.grill=.1;sfx("sizzle");}
-   else if(st.waitingFlip){st.flipped=true;st.flippingAt=performance.now();st.waitingFlip=false;st.heating=true;sfx("flip");}
-   else if(st.grill>=100){st.phase=3;sfx("done");}
- }
- else if(st.phase===3&&st.ingredients.includes("carne")){st.phase=4;st.serveAt=performance.now();sfx("done");}
- else if(st.phase===4)serve();
+ if(st.phase!==2||!st.waitingFlip||st.flipped)return;
+ st.flipped=true;st.flippingAt=performance.now();
+ st.waitingFlip=false;st.heating=true;sfx("flip");
  update();
 }
-function cutAt(p){
- if(st.phase!==1||st.cuts>=4)return;
- st.cuts++;st.lastCutAt=performance.now();sfx("cut");
- if(st.cuts>=4)sfx("done");
- status();update();
+function cutAt(){
+ if(st.phase!==1||st.cuts>=4||st.cutting||st.autoPhase===1)return;
+ st.cutting=true;
+ st.cutStartedAt=performance.now();
+ sfx("cut");
+ update();
+ st.cutTimer=setTimeout(()=>{
+  st.cutTimer=null;
+  if(st.phase!==1||!st.cutting)return;
+  st.cutting=false;st.cuts++;
+  if(st.cuts>=4){sfx("done");autoAdvance(1,850);}
+  else update();
+ },KNIFE_DURATION);
 }
-function shapeAt(p){
- if(st.phase!==0||st.effort>=100)return;
+function shapeAt(){
+ if(st.phase!==0||st.effort>=100||st.autoPhase===0)return;
  st.effort=safe(st.effort+19,0,100);sfx("shape");status();
- if(st.effort>=100)update();
+ if(st.effort>=100){sfx("done");autoAdvance(0,780);}
 }
 function addIngredient(id){
- if(st.phase!==3||st.ingredients.includes(id))return;
- st.ingredients.push(id);st.lastFood=id;st.foodAddedAt=performance.now();sfx("drop");update();
+ if(st.phase!==3||st.autoPhase===3||st.ingredients.includes(id))return;
+ st.ingredients.push(id);st.lastFood=id;st.foodAddedAt=performance.now();sfx("drop");
+ const complete=expected.every(item=>st.ingredients.includes(item));
+ if(complete){autoAdvance(3,1450);}
+ else update();
 }
 function pointerDown(e){
+ if(st.phase===2&&st.waitingFlip){
+   next();return;
+ }
  if(st.phase===0||st.phase===1){
   const p=point(e);if(!inBounds(p))return;
   st.drag={type:"work",id:e.pointerId,last:p,travel:0};
   try{canvas.setPointerCapture?.(e.pointerId)}catch(err){}
-  if(st.phase===0)shapeAt(p);else cutAt(p);
+  if(st.phase===0)shapeAt();else cutAt();
  }
 }
 function pointerMove(e){
  const drag=st.drag;if(!drag||drag.type!=="work"||drag.id!==e.pointerId)return;
  const p=point(e),travel=Math.hypot(p.x-drag.last.x,p.y-drag.last.y);
  if(travel>25){drag.last=p;drag.travel+=travel;
-  if(st.phase===0)shapeAt(p);else if(st.phase===1)cutAt(p);
+  if(st.phase===0)shapeAt();else if(st.phase===1)cutAt();
  }
 }
 function pointerUp(e){if(st.drag?.type==="work"&&st.drag.id===e.pointerId)st.drag=null;}
@@ -582,7 +653,8 @@ function serve(){
  sfx("serve");voiceSpeak(feedback);
 }
 function restart(){
- voice?.cancel();st={phase:0,effort:0,cuts:0,heating:false,grill:0,flipped:false,waitingFlip:false,flippingAt:0,ingredients:[],foodAddedAt:0,lastFood:null,drag:null,sound:st.sound,activeSound:null,startedAt:performance.now(),finished:false,rating:null,lastLine:"",chefVoice:"Theo"};$("overlay").hidden=true;voice?.reset();update();
+ voice?.cancel();clearTimers();st=initialState(st.sound);
+ $("overlay").hidden=true;voice?.reset();update();
 }
 $("mainAction").addEventListener("click",next);
 $("restart").addEventListener("click",restart);
@@ -596,7 +668,7 @@ $("soundToggle").addEventListener("click",()=>{
 update();
 requestAnimationFrame(render);
 window.BurgerPrototypeDebug={
- getState:()=>({phase:st.phase,effort:st.effort,cuts:st.cuts,grill:st.grill,flipped:st.flipped,ingredients:st.ingredients.slice(),finished:st.finished,rating:st.rating}),
+ getState:()=>({phase:st.phase,effort:st.effort,cuts:st.cuts,cutting:st.cutting,knifeDuration:KNIFE_DURATION,autoPhase:st.autoPhase,grill:st.grill,flipped:st.flipped,heating:st.heating,ingredients:st.ingredients.slice(),finished:st.finished,rating:st.rating}),
  sceneReady:()=>canvas.width>0&&canvas.height>0,
  // Read-only state; all game actions are exercised through public controls.
 };
