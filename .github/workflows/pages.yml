@@ -79,6 +79,19 @@ jobs:
           fi
           echo "Link antigo redireciona para o restaurante original."
 
+      - name: Reproduzir missão 7 e validar botão Servir
+        run: |
+          python3 -m http.server 8897 --bind 127.0.0.1 >/tmp/hanna-m7-http.log 2>&1 &
+          CHROME=$(command -v google-chrome || command -v chromium || true)
+          timeout 70s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=20000 --dump-dom http://127.0.0.1:8897/tests/mission07-regression.html > /tmp/hanna-m7-result.html 2>/tmp/hanna-m7-chrome.log
+          if ! grep -q "PASS: mission 7 pizza horta" /tmp/hanna-m7-result.html; then
+            echo "Falha na missão 7:"
+            grep -o "FAIL:[^<]*" /tmp/hanna-m7-result.html | head -n 12 || true
+            tail -n 15 /tmp/hanna-m7-chrome.log || true
+            exit 1
+          fi
+          echo "Missão 7 servida, salva e missão 8 desbloqueada."
+
       - name: Validar protótipo de hambúrguer no Chrome
         run: |
           node <<'NODE'
