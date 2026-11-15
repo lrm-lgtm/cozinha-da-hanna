@@ -1,0 +1,52 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Regression test Pizza da Horta mission 7/24</title>
+<body><pre id="result">RUNNING</pre><iframe id="game" src="../index.html" style="width:390px;height:844px;border:0"></iframe>
+<script>
+(async()=>{
+const out=document.getElementById("result"),frame=document.getElementById("game");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const fail=msg=>{out.textContent="FAIL: "+msg;throw Error(msg);};
+const load=()=>new Promise((ok,no)=>{frame.onload=ok;frame.onerror=no;});
+await load();
+const catalog=frame.contentWindow.HannaMissions;
+if(!catalog||catalog.missions[6]?.id!=="pizza-03")fail("Mission 7 was not pizza-03");
+const progress={};for(const m of catalog.missions.slice(0,6)){progress[m.id]={completed:true,stars:3,lastPlayed:"2026-11-01T00:00:00Z"};}
+frame.contentWindow.localStorage.setItem("hanna_missions_v1",JSON.stringify(progress));
+const loadAgain=load();
+frame.src="../index.html?test_mission_07=1";
+await loadAgain();
+const w=frame.contentWindow,d=frame.contentDocument;
+let jsErrors=[];
+w.addEventListener("error",e=>jsErrors.push(e.message));
+w.addEventListener("unhandledrejection",e=>jsErrors.push(String(e.reason)));
+const game=d.getElementById("round");
+if(!game||!game.textContent.includes("MISSÃO 7/24"))fail("Reload did not resume 7/24: "+game?.textContent);
+d.getElementById("play").click();
+const card=d.querySelector('.choice[data-dish="pizza"]');
+if(!card)fail("Pizza choice not present");card.click();
+await sleep(550);
+const serving=d.getElementById("serve");
+if(!serving)fail("Serve control absent");
+const need=catalog.recipes.pizza_horta.needs;
+if(need.join(",")!=="massa,tomate,milho,alface")fail("Unexpected recipe "+need);
+for(const id of need){
+ const b=d.querySelector('.ingredient[data-id="'+id+'"]');
+ if(!b)fail("Ingredient "+id+" not available in the pantry");
+ b.click(); // keyboard-assisted interaction
+ await sleep(80);
+ if(!b.disabled)fail("Ingredient "+id+" was not placed, click did not work");
+}
+if(serving.disabled)fail("SERVIR stayed disabled despite all four toppings");
+serving.click();
+await sleep(90);
+if(jsErrors.length)fail("JS errors on serve: "+jsErrors.join("; "));
+if(!d.querySelector("#overlay:not([hidden]) #next"))fail("Serving did not open reaction modal");
+d.getElementById("next").click();
+await sleep(100);
+if(!d.getElementById("modalTitle")?.textContent.includes("Missão concluída"))fail("Did not finish mission 7");
+if(!JSON.parse(w.localStorage.getItem("hanna_missions_v1")||"{}")["pizza-03"]?.completed)fail("Mission 7 not persisted");
+if(!d.getElementById("nextMission"))fail("Mission 8 not unlocked");
+d.getElementById("nextMission").click();
+if(!d.getElementById("round").textContent.includes("MISSÃO 8/24"))fail("Mission 8 did not launch");
+out.textContent="PASS: mission 7 pizza horta served, reaction, save, unlock 8";
+})().catch(e=>document.getElementById("result").textContent="FAIL: "+(e.stack||e));
+</script></body></html>
