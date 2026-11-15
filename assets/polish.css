@@ -276,3 +276,80 @@ body{background:radial-gradient(ellipse at 6% 8%,#e4ede1 0,transparent 35%),radi
  .choice{min-height:130px}.choice .emoji{height:60px}.choice .food-art{height:65px;width:65px}.choice:after{top:80px}
  .order-paper{min-height:170px}.paper-row{min-height:26px}
 }
+
+
+/* V5 — Comanda + ingredientes em um único painel visível, sem scroll.
+   A comanda ocupa a faixa superior; seis ingredientes ficam em grade 2x3.
+   Nenhum item precisa ser encontrado por rolagem no celular. */
+body.mode-prepare .pan{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+body.mode-prepare .pantry-all-in-one{
+ display:flex;flex-direction:column;gap:9px;
+ flex:1 1 auto;min-height:0;padding:9px;overflow:hidden!important;
+}
+body.mode-prepare .recipe-slot{flex:0 0 auto;min-width:0}
+body.mode-prepare .recipe-slot .receipt{
+ margin:0;padding:8px;border-radius:12px;border:1px solid #dfd1ba;
+ background:linear-gradient(160deg,#fffdf6,#f8f0e4);
+ box-shadow:0 2px 5px #5248390d;
+}
+body.mode-prepare .recipe-slot .receipt-top{font-size:9px;gap:5px}
+body.mode-prepare .recipe-slot .receipt h3{
+ margin:4px 0 6px;font-size:clamp(13px,1.4vw,17px);
+ line-height:1.12;
+}
+body.mode-prepare .recipe-slot .need-list{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;
+}
+body.mode-prepare .recipe-slot .need{
+ min-width:0;min-height:24px;padding:2px 4px;
+ font-size:10px;line-height:1.12;
+ overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+body.mode-prepare .recipe-slot .need i{flex:0 0 19px;width:19px;height:19px}
+body.mode-prepare .recipe-slot .need i .food-art{width:19px;height:19px}
+body.mode-prepare .recipe-slot .recipe-progress{margin-top:6px;font-size:10px}
+body.mode-prepare .pantry-all-in-one .pantrycards{
+ flex:1 1 0;min-height:0;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ grid-template-rows:repeat(3,minmax(0,1fr));gap:7px;
+}
+body.mode-prepare .pantry-all-in-one .ingredient{
+ height:100%;width:100%;min-height:0;
+ padding:3px 2px;border-radius:12px;
+ display:flex;align-items:center;justify-content:center;
+}
+body.mode-prepare .pantry-all-in-one .ingredient .emoji{
+ flex:0 1 auto;height:auto;display:grid;place-items:center;
+}
+body.mode-prepare .pantry-all-in-one .ingredient .label{
+ flex:0 0 auto;max-width:100%;
+ line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+@media(max-width:750px){
+ body.mode-prepare .panhead{display:none}
+ body.mode-prepare .pantry-all-in-one{padding:5px;gap:6px}
+ body.mode-prepare .recipe-slot .receipt{padding:6px 5px;border-radius:10px}
+ body.mode-prepare .recipe-slot .receipt-top{font-size:8px}
+ body.mode-prepare .recipe-slot .receipt h3{font-size:clamp(11px,3.2vw,14px);margin:3px 0 5px}
+ body.mode-prepare .recipe-slot .need-list{gap:3px}
+ body.mode-prepare .recipe-slot .need{font-size:9px;min-height:20px;padding:2px;gap:2px;border-radius:6px}
+ body.mode-prepare .recipe-slot .need i{width:15px;height:15px;flex-basis:15px}
+ body.mode-prepare .recipe-slot .need i .food-art{width:15px;height:15px}
+ body.mode-prepare .recipe-slot .recipe-progress{font-size:9px;margin-top:4px}
+ body.mode-prepare .pantry-all-in-one .pantrycards{gap:5px}
+ body.mode-prepare .pantry-all-in-one .ingredient{border-radius:9px;padding:2px 1px;gap:2px;box-shadow:0 2px 0 #edddc8}
+ body.mode-prepare .pantry-all-in-one .ingredient .emoji{min-height:0}
+ body.mode-prepare .pantry-all-in-one .ingredient .food-art{width:clamp(25px,6.8dvh,43px);height:clamp(25px,6.8dvh,43px)}
+ body.mode-prepare .pantry-all-in-one .ingredient .label{font-size:clamp(8px,2.4vw,11px)}
+}
+@media(max-width:750px) and (max-height:620px){
+ body.mode-prepare .pantry-all-in-one{padding:3px;gap:3px}
+ body.mode-prepare .recipe-slot .receipt{padding:4px}
+ body.mode-prepare .recipe-slot .receipt-top{font-size:7px}
+ body.mode-prepare .recipe-slot .receipt h3{font-size:11px;margin:2px 0 3px}
+ body.mode-prepare .recipe-slot .need{min-height:17px;font-size:8px;padding:1px}
+ body.mode-prepare .recipe-slot .need i{width:13px;height:13px;flex-basis:13px}
+ body.mode-prepare .recipe-slot .need i .food-art{width:13px;height:13px}
+ body.mode-prepare .recipe-slot .recipe-progress{font-size:8px;margin-top:3px}
+ body.mode-prepare .pantry-all-in-one .ingredient .food-art{width:25px;height:25px}
+}
