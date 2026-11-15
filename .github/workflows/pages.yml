@@ -87,7 +87,7 @@ jobs:
           python3 - <<'PY'
           import html, re, sys
           source = open('/tmp/hanna-m7-result.html', encoding='utf-8').read()
-          match = re.search(r'<pre\\s+id="result"[^>]*>([^<]*)</pre>', source, re.I | re.S)
+          match = re.search(r'<pre\s+id="result"[^>]*>([^<]*)</pre>', source, re.I | re.S)
           actual = html.unescape(match.group(1)).strip() if match else 'RESULTADO NÃO ENCONTRADO'
           print('Teste real da missão 7:', actual[:900])
           if not actual.startswith('PASS: mission 7 pizza horta served'):
