@@ -84,12 +84,15 @@ jobs:
           python3 -m http.server 8897 --bind 127.0.0.1 >/tmp/hanna-m7-http.log 2>&1 &
           CHROME=$(command -v google-chrome || command -v chromium || true)
           timeout 70s "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --no-first-run --virtual-time-budget=20000 --dump-dom http://127.0.0.1:8897/tests/mission07-regression.html > /tmp/hanna-m7-result.html 2>/tmp/hanna-m7-chrome.log
-          if ! grep -q "PASS: mission 7 pizza horta" /tmp/hanna-m7-result.html; then
-            echo "Falha na missão 7:"
-            grep -o "FAIL:[^<]*" /tmp/hanna-m7-result.html | head -n 12 || true
-            tail -n 15 /tmp/hanna-m7-chrome.log || true
-            exit 1
-          fi
+          python3 - <<'PY'
+          import html, re, sys
+          source = open('/tmp/hanna-m7-result.html', encoding='utf-8').read()
+          match = re.search(r'<pre\\s+id="result"[^>]*>([^<]*)</pre>', source, re.I | re.S)
+          actual = html.unescape(match.group(1)).strip() if match else 'RESULTADO NÃO ENCONTRADO'
+          print('Teste real da missão 7:', actual[:900])
+          if not actual.startswith('PASS: mission 7 pizza horta served'):
+              sys.exit(1)
+          PY
           echo "Missão 7 servida, salva e missão 8 desbloqueada."
 
       - name: Validar protótipo de hambúrguer no Chrome
