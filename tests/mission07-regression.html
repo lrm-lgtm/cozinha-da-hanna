@@ -24,6 +24,34 @@ d.getElementById("play").click();
 const card=d.querySelector('.choice[data-dish="pizza"]');
 if(!card)fail("Pizza choice not present");card.click();
 await sleep(550);
+function checkAllInOne(size){
+ const panel=d.getElementById("pantry"),inside=d.querySelector(".pantry-all-in-one");
+ const receipt=d.getElementById("recipe"),grid=d.querySelector(".pantrycards");
+ const cards=[...d.querySelectorAll(".pantrycards .ingredient")];
+ if(!panel||!inside||!receipt||!grid)fail("Comanda e ingredientes nao compartilham o mesmo painel em "+size);
+ if(cards.length!==6)fail("Painel deve mostrar 6 ingredientes sem scroll, recebeu "+cards.length+" em "+size);
+ const within=(element,parent,name)=>{
+  const r=element.getBoundingClientRect(),p=parent.getBoundingClientRect();
+  if(r.width<10||r.height<12||r.left<p.left-2||r.right>p.right+2||r.top<p.top-2||r.bottom>p.bottom+2){
+   fail(name+" fora da area visivel em "+size+" -> "+JSON.stringify({element:[r.left,r.top,r.right,r.bottom],parent:[p.left,p.top,p.right,p.bottom]}));
+  }
+ };
+ within(receipt,inside,"Comanda");
+ within(grid,inside,"Grade de ingredientes");
+ for(const card of cards)within(card,grid,"Ingrediente "+card.dataset.id);
+ for(const n of [panel,inside,grid]){
+  if(n.scrollHeight>n.clientHeight+3)fail("Scroll interno em "+size+" "+(n.className||n.id)+" "+n.scrollHeight+"/"+n.clientHeight);
+ }
+ const root=d.documentElement,body=d.body;
+ if(body.scrollHeight>root.clientHeight+3)fail("Scroll da pagina em "+size);
+ const need=d.querySelectorAll(".receipt .need");
+ if(need.length!==4)fail("Ingredientes pedidos nao aparecem na comanda em "+size);
+}
+for(const [width,height] of [[320,568],[360,640],[375,667],[390,844],[430,932],[768,720],[1024,768],[1366,768]]){
+ frame.style.width=width+"px";frame.style.height=height+"px";
+ await sleep(65);checkAllInOne(width+"x"+height);
+}
+frame.style.width="390px";frame.style.height="844px";await sleep(65);
 const serving=d.getElementById("serve");
 if(!serving)fail("Serve control absent");
 const need=catalog.recipes.pizza_horta.needs;
