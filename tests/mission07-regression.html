@@ -13,7 +13,7 @@ const progress={};for(const m of catalog.missions.slice(0,6)){progress[m.id]={co
 frame.contentWindow.localStorage.setItem("hanna_missions_v1",JSON.stringify(progress));
 const loadAgain=load();
 frame.src="../index.html?test_mission_07=1";
-await loadAgain();
+await loadAgain;
 const w=frame.contentWindow,d=frame.contentDocument;
 let jsErrors=[];
 w.addEventListener("error",e=>jsErrors.push(e.message));
