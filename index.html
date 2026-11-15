@@ -305,7 +305,7 @@ function recipe(){
  const wanted=order()[3],right=S.placed.filter(id=>wanted.includes(id)),wrong=S.placed.filter(id=>!wanted.includes(id));
  return '<div class="receipt"><div class="receipt-top"><span>COMANDA #'+String(S.round+1).padStart(2,'0')+'</span><span>'+S.guests[S.round][0].toUpperCase()+'</span></div><h3>'+order()[1]+'</h3><div class="need-list">'+wanted.map(id=>'<div class="need '+(right.includes(id)?'check':'')+'"><i>'+foodIcon(id)+'</i>'+ingredients[id][0]+(right.includes(id)?' ✓':'')+'</div>').join('')+'</div><p class="recipe-progress">'+right.length+' de '+wanted.length+' ingredientes pedidos'+(wrong.length?' • '+wrong.length+' diferente'+(wrong.length>1?'s':''):'')+'</p></div>';
 }
-function renderPrepare(){S.stage='prepare';S.placed=[];S.locked=false;S.prepStarted=performance.now();let rest=sample(Object.keys(ingredients).filter(id=>!order()[3].includes(id))).slice(0,8-order()[3].length);S.palette=sample(order()[3].concat(rest));header();$('stageContent').innerHTML=stageHead(isDessert()?'🍓 SOBREMESA • PREPARAR':'🍳 PRATO PRINCIPAL • PREPARAR',isDessert()?'Monte a sobremesa!':'Monte o prato!','Arraste os ingredientes da despensa até o prato.')+'<div class="stagebody"><div id="plateHost">'+plateHTML()+'</div><p class="message" id="message">Comece pelo '+ingredients[dish()[2]][0].toLowerCase()+'! 🌈</p></div>';$('pantry').innerHTML='<div class="panhead"><small>🍓 DESPENSA</small><h3>Ingredientes</h3><p>Segure e arraste até o prato!</p></div><div class="pantryinner"><div class="pantrycards">'+S.palette.map(id=>'<button type="button" class="ingredient" data-id="'+id+'" title="Arraste '+ingredients[id][0]+' para o prato" aria-label="Arrastar '+ingredients[id][0]+' para o prato"><span class="emoji">'+foodIcon(id)+'</span><span class="label">'+ingredients[id][0]+'</span></button>').join('')+'</div><div id="recipe">'+recipe()+'</div></div>';$('tip').textContent='Pode inventar: a avaliação depende dos ingredientes certos e errados.';$('actions').innerHTML='<button class="secondary" id="clear">↻ Limpar</button><button class="primary" id="serve" disabled>Servir 🍽️</button>';$('clear').onclick=()=>{S.placed=[];update();sfx('good');};$('serve').onclick=serve;document.querySelectorAll('.ingredient').forEach(b=>{b.addEventListener('pointerdown',startDrag);b.addEventListener('click',e=>{if(e.detail===0)add(b.dataset.id);});});update();}
+function renderPrepare(){S.stage='prepare';S.placed=[];S.locked=false;S.prepStarted=performance.now();let rest=sample(Object.keys(ingredients).filter(id=>!order()[3].includes(id))).slice(0,8-order()[3].length);S.palette=sample(order()[3].concat(rest));header();$('stageContent').innerHTML=stageHead(isDessert()?'🍓 SOBREMESA • PREPARAR':'🍳 PRATO PRINCIPAL • PREPARAR',isDessert()?'Monte a sobremesa!':'Monte o prato!','Arraste os ingredientes da despensa até o prato.')+'<div class="stagebody"><div id="plateHost">'+plateHTML()+'</div><p class="message" id="message">Comece pelo '+ingredients[dish()[2]][0].toLowerCase()+'! 🌈</p></div>';$('pantry').innerHTML='<div class="panhead"><small>🍓 DESPENSA</small><h3>Ingredientes</h3><p>Segure e arraste até o prato!</p></div><div class="pantryinner"><div class="pantrycards">'+S.palette.map(id=>'<button type="button" class="ingredient" data-id="'+id+'" title="Arraste '+ingredients[id][0]+' para o prato" aria-label="Arrastar '+ingredients[id][0]+' para o prato"><span class="emoji">'+foodIcon(id)+'</span><span class="label">'+ingredients[id][0]+'</span></button>').join('')+'</div><div id="recipe">'+recipe()+'</div></div>';$('tip').textContent='Pode inventar: a avaliação depende dos ingredientes certos e errados.';$('actions').innerHTML='<button class="secondary" id="clear">↻ Limpar</button><button class="primary" id="serve" type="button" aria-label="Servir o prato">Servir 🍽️</button>';$('clear').onclick=()=>{S.placed=[];update();sfx('good');};$('serve').onclick=serve;document.querySelectorAll('.ingredient').forEach(b=>{b.addEventListener('pointerdown',startDrag);b.addEventListener('click',e=>{if(e.detail===0)add(b.dataset.id);});});update();}
 function update(){
  if(S.stage!=='prepare')return;
  $('plateHost').innerHTML=plateHTML();
@@ -315,7 +315,11 @@ function update(){
    b.classList.toggle('placed',used);b.disabled=used;
  });
  const ready=S.placed.length>0;
- $('serve').disabled=!ready;
+ // O botão deve sempre responder ao toque. Quando o prato estiver vazio,
+ // explique o que falta em vez de deixar uma ação visualmente inerte.
+ $('serve').disabled=false;
+ $('serve').setAttribute('aria-label',ready?'Servir o prato preparado':'Servir: o prato ainda precisa de ingredientes');
+ $('serve').title=ready?'Entregar o prato para avaliação':'Toque ou arraste ao menos um ingrediente para o prato';
  const good=S.placed.filter(id=>order()[3].includes(id)).length;
  const bad=S.placed.length-good;
  $('message').textContent=good+' correto'+(good===1?'':'s')+' • '+bad+' diferente'+(bad===1?'':'s');
@@ -330,11 +334,16 @@ function add(id){
 function insidePlate(x,y){const el=$('plate');if(!el)return false;let r=el.getBoundingClientRect();return x>=r.left-18&&x<=r.right+18&&y>=r.top-18&&y<=r.bottom+18;}
 function startDrag(e){let b=e.currentTarget;if(b.disabled||S.stage!=='prepare')return;if(e.pointerType==='mouse'&&e.button!==0)return;drag={id:b.dataset.id,startX:e.clientX,startY:e.clientY,pointer:e.pointerId,el:b,moving:false,proxy:null};try{b.setPointerCapture(e.pointerId);}catch(err){}}
 function moveDrag(e){if(!drag||e.pointerId!==drag.pointer)return;let d=drag;if(!d.moving&&Math.hypot(e.clientX-d.startX,e.clientY-d.startY)>8){d.moving=true;d.el.classList.add('dragging');d.proxy=document.createElement('div');d.proxy.className='drag-proxy';d.proxy.innerHTML=foodIcon(d.id);document.body.appendChild(d.proxy);}if(d.moving){e.preventDefault();d.proxy.style.left=e.clientX+'px';d.proxy.style.top=e.clientY+'px';const p=$('plate');if(p)p.classList.toggle('hover',insidePlate(e.clientX,e.clientY));}}
-function releaseDrag(e){if(!drag||e.pointerId!==drag.pointer)return;const d=drag;drag=null;d.el.classList.remove('dragging');if(d.proxy)d.proxy.remove();let ok=d.moving&&insidePlate(e.clientX,e.clientY);let p=$('plate');if(p)p.classList.remove('hover');if(ok){add(d.id);}else if(d.moving){snack('Quase! Solte o ingrediente dentro do prato! 🍽️');}else{snack('Segure o ingrediente e arraste até o prato! 👆');}}
+function releaseDrag(e){if(!drag||e.pointerId!==drag.pointer)return;const d=drag;drag=null;d.el.classList.remove('dragging');if(d.proxy)d.proxy.remove();let ok=d.moving&&insidePlate(e.clientX,e.clientY);let p=$('plate');if(p)p.classList.remove('hover');if(ok||!d.moving){add(d.id);}else{snack('Quase! Solte o ingrediente dentro do prato ou toque nele para adicionar!');}}
 function cancelDrag(e){if(drag&&e.pointerId===drag.pointer){if(drag.proxy)drag.proxy.remove();drag.el.classList.remove('dragging');drag=null;let p=$('plate');if(p)p.classList.remove('hover');}}
 window.addEventListener('pointermove',moveDrag,{passive:false});window.addEventListener('pointerup',releaseDrag);window.addEventListener('pointercancel',cancelDrag);
 function serve(){
- if(S.stage!=='prepare'||S.placed.length===0)return;
+ if(S.stage!=='prepare')return;
+ if(S.placed.length===0){
+  snack('O prato está vazio! Toque em um ingrediente ou arraste-o até o prato para poder servir.',true);
+  const plate=$('plate');if(plate){plate.classList.add('hover');setTimeout(()=>plate.classList.remove('hover'),800);}
+  return;
+ }
  const result=rating();S.stage='serve';S.stars+=result.stars;S.ratings.push(result);header();
  if(result.stars>=2)sfx('win');else sfx('wrong');
  const faces={excellent:'😍',good:'🙂',okay:'😐',low:'😕'};
