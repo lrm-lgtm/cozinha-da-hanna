@@ -28,14 +28,24 @@ const serving=d.getElementById("serve");
 if(!serving)fail("Serve control absent");
 const need=catalog.recipes.pizza_horta.needs;
 if(need.join(",")!=="massa,tomate,milho,alface")fail("Unexpected recipe "+need);
-for(const id of need){
+if(serving.disabled)fail("SERVIR must respond even when dish empty");
+serving.click();await sleep(35);
+if(!d.getElementById("toast").textContent.includes("prato está vazio"))fail("Empty serve gave no feedback");
+if(d.querySelector("#overlay:not([hidden]) #next"))fail("Empty plate was served");
+for(const [i,id] of need.entries()){
  const b=d.querySelector('.ingredient[data-id="'+id+'"]');
  if(!b)fail("Ingredient "+id+" not available in the pantry");
- b.click(); // keyboard-assisted interaction
- await sleep(80);
- if(!b.disabled)fail("Ingredient "+id+" was not placed, click did not work");
+ // Reproduce an actual mobile tap: pointer down/up without drag motion.
+ const rect=b.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ b.dispatchEvent(new w.PointerEvent("pointerdown",{bubbles:true,pointerType:"touch",pointerId:101+i,isPrimary:true,clientX:x,clientY:y}));
+ b.dispatchEvent(new w.PointerEvent("pointerup",{bubbles:true,pointerType:"touch",pointerId:101+i,isPrimary:true,clientX:x,clientY:y}));
+ await sleep(55);
+ if(!b.disabled)fail("Touch did not add ingredient "+id);
 }
 if(serving.disabled)fail("SERVIR stayed disabled despite all four toppings");
+const btnRect=serving.getBoundingClientRect();
+const topElement=d.elementFromPoint(btnRect.left+btnRect.width/2,btnRect.top+btnRect.height/2);
+if(!topElement?.closest("#serve"))fail("SERVIR button covered by another element on mobile: "+topElement?.outerHTML.slice(0,130));
 serving.click();
 await sleep(90);
 if(jsErrors.length)fail("JS errors on serve: "+jsErrors.join("; "));
